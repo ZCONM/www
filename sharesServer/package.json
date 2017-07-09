@@ -1,0 +1,22 @@
+{
+  "name": "ss",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dbutil.js",
+  "dependencies": {
+    "async": "^2.4.0",
+    "fs": "^0.0.1-security",
+    "journey": "^0.4.0-pre-3",
+    "lodash": "^4.17.4",
+    "mongodb": "^2.2.26",
+    "underscore": "^1.8.3",
+    "vm": "^0.1.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
