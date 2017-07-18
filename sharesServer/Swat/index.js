@@ -63,6 +63,9 @@ var codeData = {};
 var soaring = {};
 var dayFlag = {};
 var timeRQ = setTime();
+var timeSJ = {};
+var maxValue = {};
+var minValue = {};
 
 // 初始化
 schedule.scheduleJob('0 55 8 * * 1-5', function() {
@@ -73,6 +76,9 @@ schedule.scheduleJob('0 55 8 * * 1-5', function() {
     soaring = {};
     dayFlag = {};
     timeRQ = setTime();
+    timeSJ = {};
+    maxValue = {};
+    minValue = {};
 
     // 开启计算
     loading();
@@ -88,6 +94,8 @@ function loading() {
             var item = codeIDarr[i];
             soaring[item.codeID] = 0;
             dayFlag[item.codeID] = 0;
+            maxValue[item.codeID] = (item.maxData.sum() - Number(item.mean)) * 0.1;
+            minValue[item.codeID] = (Number(item.mean) - item.minData.sum()) * 0.1;
 		}
         // 开始记录今天的数据
         var rule = new schedule.RecurrenceRule();
@@ -181,8 +189,9 @@ function setURL(code,flag) {
 			'timeSJ': data[31]
 		};
 		timeRQ = data[30];
-		https.post('http://127.0.0.1:9999/HamstrerServlet/stockAll/add', str).then(function (message){
+		!timeSJ[code+data[30]+data[31]] && https.post('http://127.0.0.1:9999/HamstrerServlet/stockAll/add', str).then(function (message){
 			console.log(message.data);
+            timeSJ[code+data[30]+data[31]]=true
 		}).catch(function(err) {
 			console.log(err);
 		});
@@ -201,50 +210,40 @@ function calculatingData(code, name) {
 		var item = codeData[code];
         var maxSum=item && item.maxData ? item.maxData.sum() : 0;
         var minSum=item && item.minData ? item.minData.sum() : 0;
+        var isMax = (((max.max - mean) * 0.9) + mean) < (max.max - maxValue[code]) ? (((max.max - mean) * 0.9) + mean) : (max.max - maxValue[code]);
+        var isMin = (mean - ((mean - min.min) * 0.9)) > (min.min + minValue[code]) ? (mean - ((mean - min.min) * 0.9)) : (min.min + minValue[code]);
+        console.log('isMax-all',(((max.max - mean) * 0.9) + mean),(max.max - maxValue[code]),isMax);
+        console.log('isMin-all',(mean - ((mean - min.min) * 0.9)),(min.min + minValue[code]),isMin);
 		console.log('max：',newest > maxSum, Sday[code].max().nub == Sday[code].length-1,'min:',newest < item.minData.sum(),Sday[code].min().nub == Sday[code].length-1);
 		console.log('length:',length)
 		if(newest > maxSum) {
 			if(max.nub == length && soaring[code] == 0) {
-				emailGet('851726398@qq.com', code + ':比较昨天飙升中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2));
+				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:今日飙升中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2));
 				soaring[code] = 1;
-			} else if(soaring[code] == 1 && newest < ((max.max - mean) * 0.9) + mean) {
-				emailGet('851726398@qq.com', code + ':回降中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2));
+			} else if(soaring[code] == 1 && newest < isMax) {
+				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:回降中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2));
 				soaring[code] = 0;
 			}
-			if(dayFlag[code] == 0 && max.nub == length){
-				emailGet('851726398@qq.com', code + ':今日最高价', '当前价：' + max.max.toFixed(2));
-				dayFlag[code] = 1;
-			} else if (dayFlag[code] == 1&&((max.max - mean) * 0.5) + mean > newest && newest > mean - ((mean - min.min) * 0.5)){
-				emailGet('851726398@qq.com', code + ':回降中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2));
-				dayFlag[code] = 0;
-			}
-
 		} else if(newest < minSum) {
 			if(min.nub == length && soaring[code] == 0) {
-				emailGet('851726398@qq.com', code + ':比较昨天下降中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2));
+				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:今日下降中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2));
                 soaring[code] = 1;
-			} else if(soaring[code] == 1 && newest < mean - ((mean - min.min) * 0.9)) {
-				emailGet('851726398@qq.com', code + ':回升中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2));
+			} else if(soaring[code] == 1 && newest > isMin) {
+				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:回升中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2));
                 soaring[code] = 0;
 			}
-			if(dayFlag[code] == 0 && min.nub == length){
-				emailGet('851726398@qq.com', code + ':今日最低价', '当前价：' + min.min.toFixed(2));
-				dayFlag[code] = 1;
-			} else if (dayFlag[code] == 1 && ((max.max - mean) * 0.5) + mean > newest && newest > mean - ((mean - min.min) * 0.5)){
-				emailGet('851726398@qq.com', code + ':最低价回升中', '当前价：' + min.min.toFixed(2));
-				dayFlag[code] = 0;
-			}
-		} else {
-			if(dayFlag[code] = 0 && max.nub == length){
-                emailGet('851726398@qq.com', code + ':今日最高价', '当前价：' + newest);
-                dayFlag[code] = 1;
-            } else if(dayFlag[code] = 0 && min.nub == length){
-                emailGet('851726398@qq.com', code + ':今日最低价', '当前价：' + newest);
-                dayFlag[code] = 1;
-            } else if (((max.max - mean) * 0.5) + mean > newest && newest > mean - ((mean - min.min) * 0.5)){
-                dayFlag[code] = 0;
-            }
 		}
+		// else {
+		// 	if(dayFlag[code] = 0 && max.nub == length){
+         //        emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:今日最高价', '当前价：' + newest);
+         //        dayFlag[code] = 1;
+         //    } else if(dayFlag[code] = 0 && min.nub == length){
+         //        emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:今日最低价', '当前价：' + newest);
+         //        dayFlag[code] = 1;
+         //    } else if (((max.max - mean) * 0.5) + mean > newest && newest > mean - ((mean - min.min) * 0.5)){
+         //        dayFlag[code] = 0;
+         //    }
+		// }
 	}
 }
 // 发送邮件
@@ -258,7 +257,7 @@ function emailGet(to, tit, text) {
 	})
 }
 // setBOX()
-// timeRQ = '2017-06-26'
+// timeRQ = '2017-07-07'
 function setBOX() {
 	https.get('http://127.0.0.1:9999/HamstrerServlet/stock/find').then(function(d) {
 		for(var i = 0; i < d.data.length; i++) {

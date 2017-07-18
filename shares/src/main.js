@@ -17,4 +17,3 @@ new Vue({
   template: '<App/>',
   components: { App }
 })
-console.log('启动刷数据')
