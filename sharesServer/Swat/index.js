@@ -79,11 +79,7 @@ schedule.scheduleJob('0 55 8 * * 1-5', function() {
     timeSJ = {};
     maxValue = {};
     minValue = {};
-
-    // 开启计算
-    loading();
 });
-// loading();
 function loading() {
 	console.log('loading');
     Sday = {};
@@ -94,26 +90,26 @@ function loading() {
             var item = codeIDarr[i];
             soaring[item.codeID] = 0;
             dayFlag[item.codeID] = 0;
-            maxValue[item.codeID] = (item.maxData.sum() - Number(item.mean)) * 0.1;
-            minValue[item.codeID] = (Number(item.mean) - item.minData.sum()) * 0.1;
+            maxValue[item.codeID] = (item.max - Number(item.mean)) * 0.1;
+            minValue[item.codeID] = (Number(item.mean) - item.min) * 0.1;
 		}
-        // 开始记录今天的数据
-        var rule = new schedule.RecurrenceRule();
-		rule.dayOfWeek = [1, 2, 3, 4, 5]; // 周
-		//rule.month = 3;	// 月
-		//rule.dayOfMonth = 1; // 日
-		rule.hour = [9, 10, 11, 12, 13, 14]; // 时
-		//rule.minute = [5,10,15,20,25,30,35,40,45,50,55,59]; // 分
-        rule.second = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55] // 秒
-        schedule.scheduleJob(rule, function() {
-            console.log('gainCodeTime');
-            gainCode();
-        });
+        gainCode();
     }).catch(function (err) {
         console.log(err);
     });
 }
-
+// 开始记录今天的数据
+var rule = new schedule.RecurrenceRule();
+rule.dayOfWeek = [1, 2, 3, 4, 5]; // 周
+//rule.month = 3;	// 月
+//rule.dayOfMonth = 1; // 日
+rule.hour = [9, 10, 11, 12, 13, 14]; // 时
+//rule.minute = [5,10,15,20,25,30,35,40,45,50,55,59]; // 分
+rule.second = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55] // 秒
+schedule.scheduleJob(rule, function() {
+    console.log('gainCodeTime');
+    codeIDarr && codeIDarr.length>0 ? gainCode() : loading();
+});
 
 // 运行完一天数据后 计算创建箱子
 var rules = new schedule.RecurrenceRule();
@@ -132,6 +128,7 @@ function gainCode() {
 	if(codeIDarr){
 		console.log('gainCode', 2);
 		for(var i = 0; i < codeIDarr.length; i++) {
+            console.log('gainCode', 3);
 			var item = codeIDarr[i];
 			console.log("解析股票代码：", item.codeID)
 			setURL(item.codeID, !!item.max);
@@ -189,14 +186,13 @@ function setURL(code,flag) {
 			'timeSJ': data[31]
 		};
 		timeRQ = data[30];
-		!timeSJ[code+data[30]+data[31]] && https.post('http://127.0.0.1:9999/HamstrerServlet/stockAll/add', str).then(function (message){
-			console.log(message.data);
+		Number(data[3]) > 0 && !timeSJ[code+data[30]+data[31]] && https.post('http://127.0.0.1:9999/HamstrerServlet/stockAll/add', str).then(function (message){
+            console.log(code + ':存储最新价格'+nub.toFixed(2)+'!');
             timeSJ[code+data[30]+data[31]]=true
 		}).catch(function(err) {
 			console.log(err);
 		});
-		console.log(code + ':存储最新价格'+nub.toFixed(2)+'!');
-		flag && calculatingData(code, data[0].split('"')[1]);
+        Number(data[3]) > 0 && flag && calculatingData(code, data[0].split('"')[1]);
 	});
 }
 function calculatingData(code, name) {
@@ -210,8 +206,8 @@ function calculatingData(code, name) {
 		var item = codeData[code];
         var maxSum=item && item.maxData ? item.maxData.sum() : 0;
         var minSum=item && item.minData ? item.minData.sum() : 0;
-        var isMax = (((max.max - mean) * 0.9) + mean) < (max.max - maxValue[code]) ? (((max.max - mean) * 0.9) + mean) : (max.max - maxValue[code]);
-        var isMin = (mean - ((mean - min.min) * 0.9)) > (min.min + minValue[code]) ? (mean - ((mean - min.min) * 0.9)) : (min.min + minValue[code]);
+        var isMax = (((max.max - mean) * 0.9) + mean) > (max.max - maxValue[code]) ? (((max.max - mean) * 0.9) + mean) : (max.max - maxValue[code]);
+        var isMin = (mean - ((mean - min.min) * 0.9)) < (min.min + minValue[code]) ? (mean - ((mean - min.min) * 0.9)) : (min.min + minValue[code]);
         console.log('isMax-all',(((max.max - mean) * 0.9) + mean),(max.max - maxValue[code]),isMax);
         console.log('isMin-all',(mean - ((mean - min.min) * 0.9)),(min.min + minValue[code]),isMin);
 		console.log('max：',newest > maxSum, Sday[code].max().nub == Sday[code].length-1,'min:',newest < item.minData.sum(),Sday[code].min().nub == Sday[code].length-1);
@@ -257,7 +253,7 @@ function emailGet(to, tit, text) {
 	})
 }
 // setBOX()
-// timeRQ = '2017-07-07'
+// timeRQ = '2017-08-02'
 function setBOX() {
 	https.get('http://127.0.0.1:9999/HamstrerServlet/stock/find').then(function(d) {
 		for(var i = 0; i < d.data.length; i++) {
