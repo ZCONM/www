@@ -216,7 +216,7 @@ function calculatingData(code, name) {
 			if(max.nub == length && soaring[code] == 0) {
 				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:今日飙升中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2));
 				soaring[code] = 1;
-			} else if(soaring[code] == 1 && newest < isMax) {
+			} else if(soaring[code] == 1 && newest < (isMax < max.max - 0.03 ? isMax : max.max - 0.03)) {
 				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:回降中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2));
 				soaring[code] = 0;
 			}

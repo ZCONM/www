@@ -92,15 +92,12 @@
           </el-table>
         </template>
       </div>
-      <hello ref="helloID"></hello>
   </div>
   </div>
 </template>
 <script>
-  import hello from './hello'
   export default {
     name: 'add',
-    components: { hello },
     data () {
       return {
         msg: 'Welcome to Your Vue.js App',

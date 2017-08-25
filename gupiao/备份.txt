@@ -1,0 +1,112 @@
+//----------------------------------扫描邮件------------------------------------------------
+Rem 扫描
+FindPic 0,0,1024,768,"D:\按键精灵\按键精灵2014\screen\gupiao\回降中.bmp",0.9,yjX1,yjY1
+If yjX1 > 0 And yjY1 > 0 Then 
+MoveTo yjX1 + 20, yjY1 + 5
+LeftClick 1
+Goto 卖出
+End If
+FindPic 0,0,1024,768,"D:\按键精灵\按键精灵2014\screen\gupiao\回升中.bmp",0.9,yjX3,yjY3
+If yjX3 > 0 And yjY3 > 0 Then 
+MoveTo yjX3 + 20, yjY3 + 5
+LeftClick 1
+Goto 买入
+End If
+Delay 1000'等待1秒
+Goto 扫描
+Rem 返回邮件列表
+FindPic 0,0,1024,768,"D:\按键精灵\按键精灵2014\screen\gupiao\收件箱.bmp",0.9,yjX2,yjY2
+If yjX2 > 0 And yjY2 > 0 Then 
+MoveTo yjX2 + 20, yjY2 + 5
+LeftClick 1
+Delay 1000'等待1秒
+Goto 扫描
+End If
+//----------------------------------买入卖出----------------------------------------------------
+Rem 买入
+FindPic 0,0,1024,768,"D:\按键精灵\按键精灵2014\screen\gupiao\买入.bmp",0.9,intX,intY
+If intX > 0 And intY > 0 Then 
+MoveTo intX + 20, intY + 5
+LeftClick 1
+End If
+Delay 1000'等待1秒
+Goto 获取列表
+Rem 卖出
+FindPic 0,0,1024,768,"D:\按键精灵\按键精灵2014\screen\gupiao\卖出.bmp",0.9,cX,cY
+If cX > 0 And cY > 0 Then 
+MoveTo cX + 20, cY + 5
+LeftClick 1
+End If
+Delay 1000'等待1秒
+Rem 获取列表
+FindPic 0,0,1024,768,"D:\按键精灵\按键精灵2014\screen\gupiao\交易已锁定.bmp",0.9,cX1,cY1
+If cX1 > 0 And cY1 > 0 Then 
+MoveTo cX1 + 20, cY1 + 5
+LeftClick 1
+Delay 500'等待
+SayString "403877"
+MoveTo 361, 328
+LeftClick 1
+End If
+Delay 1000'等待1秒
+FindPic 0,0,1024,768,"D:\按键精灵\按键精灵2014\screen\gupiao\普亿实业.bmp",0.9,intX1,intY1
+If intX1 > 0 And intY1 > 0 Then 
+MoveTo intX1 + 20, intY1 + 5
+LeftClick 1
+Else 
+Delay 500 '等待1
+Goto 获取列表
+End If
+Delay 1000'等待1秒
+Rem 获取股票信息
+FindPic 0,0,1024,768,"D:\按键精灵\按键精灵2014\screen\gupiao\股.bmp",0.9,intX2,intY2
+If intX2 > 0 And intY2 > 0 Then 
+MoveTo intX2 + 86, intY2 + 10
+LeftClick 1
+Else 
+Delay 500 '等待
+Goto 获取股票信息
+End If
+Delay 1000'等待1秒
+FindPic 0,0,1024,768,"D:\按键精灵\按键精灵2014\screen\gupiao\买入卖出确定.bmp",0.9,intX3,intY3
+If intX3 > 0 And intY3 > 0 Then 
+MoveTo intX3 - 20, intY3 + 60
+LeftClick 1
+End If
+Delay 1000'等待1秒
+FindPic 0,0,1024,768,"D:\按键精灵\按键精灵2014\screen\gupiao\确认购买.bmp",0.9,intX4,intY4
+If intX4 > 0 And intY4 > 0 Then 
+MoveTo intX4 + 20, intY4 + 5
+LeftClick 1
+End If
+Delay 500'等待
+Rem 获取结果
+FindPic 0, 0, 1024, 768, "D:\按键精灵\按键精灵2014\screen\gupiao\委托结果确定.bmp", 0.9, intX5, intY5
+If intX5 > 0 And intY5 > 0 Then
+MoveTo intX5 + 10, intY5 + 5
+LeftClick 1
+Goto 返回
+End If
+FindPic 0,0,1024,768,"D:\按键精灵\按键精灵2014\screen\gupiao\委托结果确定1.bmp",0.9,intX6,intY6
+If intX6 > 0 And intY6 > 0 Then 
+MoveTo intX6 + 10, intY6 + 5
+LeftClick 1
+Goto 返回
+End If
+Delay 500 '等待
+Goto 获取结果
+Rem 返回
+Delay 500'等待
+FindPic 0,0,1024,768,"D:\按键精灵\按键精灵2014\screen\gupiao\返回.bmp",0.9,intX7,intY7
+If intX7 > 0 And intY7 > 0 Then 
+MoveTo intX7 + 20, intY7 + 5
+LeftClick 1
+Goto 返回邮件列表
+End If
+FindPic 0,0,1024,768,"D:\按键精灵\按键精灵2014\screen\gupiao\交易.bmp",0.9,intX8,intY8
+If intX8 > 0 And intY8 > 0 Then 
+MoveTo intX8 + 20, intY8 + 5
+LeftClick 1
+Goto 返回邮件列表
+End If
+//---------------------------------买入end---------------------------------------------------------
