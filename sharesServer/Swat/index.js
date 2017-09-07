@@ -60,7 +60,8 @@ var email = require('../getemail');
 var codeIDarr = [];
 var Sday = {};
 var codeData = {};
-var soaring = {};
+var soaringMax = {};
+var soaringMin = {};
 var dayFlag = {};
 var timeRQ = setTime();
 var timeSJ = {};
@@ -73,7 +74,8 @@ schedule.scheduleJob('0 55 8 * * 1-5', function() {
     codeIDarr = [];
     Sday = {};
     codeData = {};
-    soaring = {};
+    soaringMax = {};
+    soaringMin = {};
     dayFlag = {};
     timeRQ = setTime();
     timeSJ = {};
@@ -88,7 +90,8 @@ function loading() {
         codeIDarr = d.data;
         for(var i = 0; i < codeIDarr.length; i++) {
             var item = codeIDarr[i];
-            soaring[item.codeID] = 0;
+            soaringMax[item.codeID] = 0;
+            soaringMin[item.codeID] = 0;
             dayFlag[item.codeID] = 0;
             maxValue[item.codeID] = (item.max - Number(item.mean)) * 0.1;
             minValue[item.codeID] = (Number(item.mean) - item.min) * 0.1;
@@ -204,8 +207,8 @@ function calculatingData(code, name) {
 		var max = Sday[code].max();
 		var min = Sday[code].min();
 		var item = codeData[code];
-        var maxSum=item && item.maxData ? item.maxData.sum() : 0;
-        var minSum=item && item.minData ? item.minData.sum() : 0;
+        var maxSum=item && item.maxData ? [item.maxData.max().max,item.maxData.min().min].sum() : 0;
+        var minSum=item && item.minData ? [item.minData.max().max,item.minData.min().min].sum() : 0;
         var isMax = (((max.max - mean) * 0.9) + mean) > (max.max - maxValue[code]) ? (((max.max - mean) * 0.9) + mean) : (max.max - maxValue[code]);
         var isMin = (mean - ((mean - min.min) * 0.9)) < (min.min + minValue[code]) ? (mean - ((mean - min.min) * 0.9)) : (min.min + minValue[code]);
         console.log('isMax-all',(((max.max - mean) * 0.9) + mean),(max.max - maxValue[code]),isMax);
@@ -213,20 +216,20 @@ function calculatingData(code, name) {
 		console.log('max：',newest > maxSum, Sday[code].max().nub == Sday[code].length-1,'min:',newest < item.minData.sum(),Sday[code].min().nub == Sday[code].length-1);
 		console.log('length:',length)
 		if(newest > maxSum) {
-			if(max.nub == length && soaring[code] == 0) {
+			if(max.nub == length && soaringMax[code] == 0) {
 				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:今日飙升中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2));
-				soaring[code] = 1;
-			} else if(soaring[code] == 1 && newest < (isMax < max.max - 0.03 ? isMax : max.max - 0.03)) {
+				soaringMax[code] = 1;
+			} else if(soaringMax[code] == 1 && newest < (isMax < max.max - 0.03 ? isMax : max.max - 0.03)) {
 				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:回降中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2));
-				soaring[code] = 0;
+				soaringMax[code] = 0;
 			}
 		} else if(newest < minSum) {
-			if(min.nub == length && soaring[code] == 0) {
+			if(min.nub == length && soaringMin[code] == 0) {
 				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:今日下降中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2));
-                soaring[code] = 1;
-			} else if(soaring[code] == 1 && newest > isMin) {
+                soaringMin[code] = 1;
+			} else if(soaringMin[code] == 1 && newest > isMin) {
 				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:回升中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2));
-                soaring[code] = 0;
+                soaringMin[code] = 0;
 			}
 		}
 		// else {
