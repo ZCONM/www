@@ -4,12 +4,13 @@
 
 //最小值
 Array.prototype.min = function() {
-	var min = Number(this[0]);
-	var len = this.length;
+    var _this = this;
+	var min = Number(_this[0]);
+	var len = _this.length;
 	var nub = 0;
 	for(var i = 1; i < len; i++) {
-		if(this[i] != 0 && this[i] < min) {
-			min = Number(this[i]);
+		if(_this[i] != 0 && _this[i] < min) {
+			min = Number(_this[i]);
 			nub = i;
 		}
 	}
@@ -17,12 +18,13 @@ Array.prototype.min = function() {
 }
 //最大值
 Array.prototype.max = function() {
-	var max = Number(this[0]);
+	var _this = this;
+	var max = Number(_this[0]);
 	var len = this.length;
 	var nub = 0;
 	for(var i = 1; i < len; i++) {
 		if(this[i] > max) {
-			max = Number(this[i]);
+			max = Number(_this[i]);
 			nub = i;
 		}
 	}
@@ -67,6 +69,8 @@ var timeRQ = setTime();
 var timeSJ = {};
 var maxValue = {};
 var minValue = {};
+var maxCurr = {};
+var minCurr = {};
 
 // 初始化
 schedule.scheduleJob('0 55 8 * * 1-5', function() {
@@ -81,6 +85,8 @@ schedule.scheduleJob('0 55 8 * * 1-5', function() {
     timeSJ = {};
     maxValue = {};
     minValue = {};
+    maxCurr = {};
+    minCurr = {};
 });
 function loading() {
 	console.log('loading');
@@ -95,6 +101,8 @@ function loading() {
             dayFlag[item.codeID] = 0;
             maxValue[item.codeID] = (item.max - Number(item.mean)) * 0.1;
             minValue[item.codeID] = (Number(item.mean) - item.min) * 0.1;
+            maxCurr[item.codeID] = { nub:0, arr:[] };
+            minCurr[item.codeID] = { nub:0, arr:[] };
 		}
         gainCode();
     }).catch(function (err) {
@@ -148,21 +156,37 @@ function gainCode() {
         for(var i = 0; i < codeIDarr.length; i++) {
             var item = codeIDarr[i];
             codeData[item.codeID] = item;
+            soaringMax[item.codeID] = 0;
+            soaringMin[item.codeID] = 0;
+            dayFlag[item.codeID] = 0;
+            maxValue[item.codeID] = (item.max - Number(item.mean)) * 0.1;
+            minValue[item.codeID] = (Number(item.mean) - item.min) * 0.1;
+            maxCurr[item.codeID] = { nub:0, arr:[] };
+            minCurr[item.codeID] = { nub:0, arr:[] };
         }
 	});
     https.get('http://127.0.0.1:9999/HamstrerServlet/stockAll/find?'+'daima='+code+'&timeRQ='+timeRQ).then(function(res) {
         var data = res.data;
-        data.forEach(function (item, i) {
-            if (Sday[code]) {
-                Sday[code].push(item.dangqianjiage);
-            } else {
-                Sday[code] = [];
-                Sday[code].push(item.dangqianjiage);
+        var i = 0;
+        CScalculatingData(code);
+        function CScalculatingData(code) {
+            if (i < data.length) {
+                var item = data[i]
+                if (Sday[code]) {
+                    Sday[code].push(item.dangqianjiage*1 - 0.2);
+                } else {
+                    Sday[code] = [];
+                    Sday[code].push(item.dangqianjiage*1 - 0.2);
+                }
             }
             calculatingData(code)
-        });
+			i++;
+			setTimeout(function () {
+                CScalculatingData(code)
+			}, 100)
+		}
     });
-})('sz002232','2017-06-26')
+})('sh601002','2017-09-21')
 /*---------------------------------------------------测试end-------------------------------------------------------------*/
 function setURL(code,flag) {
 	https.get('http://hq.sinajs.cn/list=' + code,{
@@ -206,6 +230,7 @@ function calculatingData(code, name) {
 		var newest = Sday[code][length];
 		var max = Sday[code].max();
 		var min = Sday[code].min();
+		var currDay = Number(Sday[code][0]);
 		var item = codeData[code];
         var maxSum=item && item.maxData ? [item.maxData.max().max,item.maxData.min().min].sum() : 0;
         var minSum=item && item.minData ? [item.minData.max().max,item.minData.min().min].sum() : 0;
@@ -215,22 +240,32 @@ function calculatingData(code, name) {
         console.log('isMin-all',(mean - ((mean - min.min) * 0.9)),(min.min + minValue[code]),isMin);
 		console.log('max：',newest > maxSum, Sday[code].max().nub == Sday[code].length-1,'min:',newest < item.minData.sum(),Sday[code].min().nub == Sday[code].length-1);
 		console.log('length:',length)
+        maxCurr[code].arr[0] || (maxCurr[code].arr[0] = maxSum)
+        minCurr[code].arr[0] || (minCurr[code].arr[0] = minSum)
 		if(newest > maxSum) {
-			if(max.nub == length && soaringMax[code] == 0) {
-				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:今日飙升中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2));
+			if(max.nub == length && soaringMax[code] == 0 && max.max > (maxCurr[code].arr[maxCurr[code].arr.length - 1] + maxCurr[code].nub)) {
+				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:今日飙升中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2) + ';上行：' + maxSum.toFixed(2) + ';上压：' + maxCurr[code].nub);
 				soaringMax[code] = 1;
+                minCurr[code].nub = 0;
 			} else if(soaringMax[code] == 1 && newest < (isMax < max.max - 0.03 ? isMax : max.max - 0.03)) {
-				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:回降中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2));
+				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:回降中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2) + ';上行：' + maxSum.toFixed(2));
 				soaringMax[code] = 0;
+                maxCurr[code].nub = maxCurr[code].nub + 0.05;
+                maxCurr[code].arr.push(max.max)
 			}
 		} else if(newest < minSum) {
-			if(min.nub == length && soaringMin[code] == 0) {
-				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:今日下降中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2));
+			if(min.nub == length && soaringMin[code] == 0 && min.min < (minCurr[code].arr[minCurr[code].arr.length - 1] - minCurr[code].nub)) {
+				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:今日下降中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最低：' + min.min.toFixed(2) + ';下行：' + minSum.toFixed(2) + ';下压：' + minCurr[code].nub);
                 soaringMin[code] = 1;
-			} else if(soaringMin[code] == 1 && newest > isMin) {
-				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:回升中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2));
+                maxCurr[code].nub = 0
+			} else if(soaringMin[code] == 1 && newest > (isMin > min.min + 0.03 ? isMin : min.min + 0.03)) {
+				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:回升中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最低：' + min.min.toFixed(2) + ';下行：' + minSum.toFixed(2));
                 soaringMin[code] = 0;
+                minCurr[code].nub = minCurr[code].nub + 0.05;
+                minCurr[code].arr.push(max.max)
 			}
+
+
 		}
 		// else {
 		// 	if(dayFlag[code] = 0 && max.nub == length){
@@ -245,6 +280,26 @@ function calculatingData(code, name) {
 		// }
 	}
 }
+// 即将结束，清算
+var end = new schedule.RecurrenceRule();
+end.dayOfWeek = [1, 2, 3, 4, 5]; // 周
+end.hour = 14; // 时
+end.minute = 59; // 分
+end.second = 0; // 秒
+schedule.scheduleJob(end, function() {
+    console.log('执行任务setBOX');
+    endEmail()
+});
+function  endEmail () {
+	for(var code in soaringMin) {
+        if (soaringMax[code] = 1) {
+            emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:回降中', '当前价：' + Sday[code][length].toFixed(2));
+		}
+		if (soaringMin[code] == 1) {
+            emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:回升中', '当前价：' + Sday[code][length].toFixed(2));
+        }
+	}
+}
 // 发送邮件
 function emailGet(to, tit, text) {
 	email.send(to, tit, text, function(err, info) {
@@ -256,7 +311,7 @@ function emailGet(to, tit, text) {
 	})
 }
 // setBOX()
-// timeRQ = '2017-08-02'
+// timeRQ = '2017-09-20'
 function setBOX() {
 	https.get('http://127.0.0.1:9999/HamstrerServlet/stock/find').then(function(d) {
 		for(var i = 0; i < d.data.length; i++) {
