@@ -186,7 +186,7 @@ function gainCode() {
 			}, 100)
 		}
     });
-})('sh601002','2017-09-21')
+})('sh601002','2017-10-16')
 /*---------------------------------------------------测试end-------------------------------------------------------------*/
 function setURL(code,flag) {
 	https.get('http://hq.sinajs.cn/list=' + code,{
@@ -225,9 +225,9 @@ function setURL(code,flag) {
 function calculatingData(code, name) {
     console.log(code + ':分析价格!');
 	if(Sday[code].length > 0) {
-		var length = Sday[code].length - 1;
+		var lengths = Sday[code].length - 1;
 		var mean = Sday[code].sum();
-		var newest = Sday[code][length];
+		var newest = Sday[code][lengths];
 		var max = Sday[code].max();
 		var min = Sday[code].min();
 		var currDay = Number(Sday[code][0]);
@@ -239,33 +239,32 @@ function calculatingData(code, name) {
         console.log('isMax-all',(((max.max - mean) * 0.9) + mean),(max.max - maxValue[code]),isMax);
         console.log('isMin-all',(mean - ((mean - min.min) * 0.9)),(min.min + minValue[code]),isMin);
 		console.log('max：',newest > maxSum, Sday[code].max().nub == Sday[code].length-1,'min:',newest < item.minData.sum(),Sday[code].min().nub == Sday[code].length-1);
-		console.log('length:',length)
+		console.log('length:',lengths)
         maxCurr[code].arr[0] || (maxCurr[code].arr[0] = maxSum)
         minCurr[code].arr[0] || (minCurr[code].arr[0] = minSum)
+        var nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：'+ code.substring(2,8) +'</span>';
 		if(newest > maxSum) {
-			if(max.nub == length && soaringMax[code] == 0 && max.max > (maxCurr[code].arr[maxCurr[code].arr.length - 1] + maxCurr[code].nub)) {
-				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:今日飙升中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2) + ';上行：' + maxSum.toFixed(2) + ';上压：' + maxCurr[code].nub);
+			if(max.nub == lengths && soaringMax[code] == 0 && max.max > (maxCurr[code].arr[maxCurr[code].arr.length - 1] + maxCurr[code].nub)) {
+				emailGet('851726398@qq.com,zhangcong27@huawei.com',codeData[code].name + '[' + code + ']:今日飙升中', '当前价：' + Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2) + ';上行：' + maxSum.toFixed(2) + ';上压：' + maxCurr[code].nub);
 				soaringMax[code] = 1;
                 minCurr[code].nub = 0;
 			} else if(soaringMax[code] == 1 && newest < (isMax < max.max - 0.03 ? isMax : max.max - 0.03)) {
-				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:回降中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2) + ';上行：' + maxSum.toFixed(2));
+				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:回降中', '当前价：' + Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2) + ';上行：' + maxSum.toFixed(2) + nubMon);
 				soaringMax[code] = 0;
-                maxCurr[code].nub = maxCurr[code].nub + 0.05;
+                maxCurr[code].nub = maxCurr[code].nub + mathNumber(maxCurr[code].nub);
                 maxCurr[code].arr.push(max.max)
 			}
 		} else if(newest < minSum) {
-			if(min.nub == length && soaringMin[code] == 0 && min.min < (minCurr[code].arr[minCurr[code].arr.length - 1] - minCurr[code].nub)) {
-				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:今日下降中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最低：' + min.min.toFixed(2) + ';下行：' + minSum.toFixed(2) + ';下压：' + minCurr[code].nub);
+			if(min.nub == lengths && soaringMin[code] == 0 && min.min < (minCurr[code].arr[minCurr[code].arr.length - 1] - minCurr[code].nub)) {
+				emailGet('851726398@qq.com,zhangcong27@huawei.com',codeData[code].name + '[' + code + ']:今日下降中', '当前价：' + Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最低：' + min.min.toFixed(2) + ';下行：' + minSum.toFixed(2) + ';下压：' + minCurr[code].nub);
                 soaringMin[code] = 1;
                 maxCurr[code].nub = 0
 			} else if(soaringMin[code] == 1 && newest > (isMin > min.min + 0.03 ? isMin : min.min + 0.03)) {
-				emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:回升中', '当前价：' + Sday[code][length].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最低：' + min.min.toFixed(2) + ';下行：' + minSum.toFixed(2));
+				emailGet('851726398@qq.com,zhangcong27@huawei.com',codeData[code].name + '[' + code + ']:回升中', '当前价：' + Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最低：' + min.min.toFixed(2) + ';下行：' + minSum.toFixed(2)  + nubMon);
                 soaringMin[code] = 0;
-                minCurr[code].nub = minCurr[code].nub + 0.05;
+                minCurr[code].nub = minCurr[code].nub + mathNumber(minCurr[code].nub);
                 minCurr[code].arr.push(max.max)
 			}
-
-
 		}
 		// else {
 		// 	if(dayFlag[code] = 0 && max.nub == length){
@@ -278,6 +277,19 @@ function calculatingData(code, name) {
          //        dayFlag[code] = 0;
          //    }
 		// }
+		function mathNumber(val) {
+			if (val < 0.05) {
+				return 0.05
+			} else if(val < 0.09) {
+                return 0.04
+			} else if(val < 0.12) {
+                return 0.03
+            } else if(val < 0.14) {
+                return 0.02
+            } else {
+                return 0.01
+            }
+		}
 	}
 }
 // 即将结束，清算
@@ -292,11 +304,14 @@ schedule.scheduleJob(end, function() {
 });
 function  endEmail () {
 	for(var code in soaringMin) {
-        if (soaringMax[code] = 1) {
-            emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:回降中', '当前价：' + Sday[code][length].toFixed(2));
+        var nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：'+ code.substring(2,8) +'</span>';
+        if (soaringMax[code] == 1) {
+            emailGet('851726398@qq.com,zhangcong27@huawei.com',codeData[code].name + '[' + code + ']:回降中', '当前价：' + Sday[code][Sday[code].length - 1].toFixed(2) + nubMon);
+            soaringMax[code] = 0;
 		}
 		if (soaringMin[code] == 1) {
-            emailGet('851726398@qq.com,zhangcong27@huawei.com', codeData[code].name + '[' + code + ']:回升中', '当前价：' + Sday[code][length].toFixed(2));
+            emailGet('851726398@qq.com,zhangcong27@huawei.com',codeData[code].name + '[' + code + ']:回升中', '当前价：' + Sday[code][Sday[code].length - 1].toFixed(2) + nubMon);
+            soaringMin[code] = 0;
         }
 	}
 }
@@ -310,8 +325,8 @@ function emailGet(to, tit, text) {
 		console.log('邮件:', tit);
 	})
 }
-// setBOX()
-// timeRQ = '2017-09-20'
+setBOX()
+timeRQ = '2017-10-19'
 function setBOX() {
 	https.get('http://127.0.0.1:9999/HamstrerServlet/stock/find').then(function(d) {
 		for(var i = 0; i < d.data.length; i++) {
@@ -377,7 +392,43 @@ function setBOX() {
 			maxJudgeMinus(arrData);
 			if(minData.length<2) {minData=[];minData.push(min.min);minData.push(mean)}
             if(maxData.length<2) {maxData=[];maxData.push(max.max);maxData.push(mean)}
-			var obj = { minData: minData, maxData: maxData, max: max.max + '', min: min.min + '', mean: mean + '',timeRQ: timeRQ };
+            var mean10,min10,max10,k_link;
+			k_link = [
+				{
+					'max': max.max,
+					'min': min.min,
+					'mean': mean,
+					'ks': arrData[0],
+					'js': arrData[arrData.length - 1],
+					'status': arrData[arrData.length - 1] - arrData[0]
+				}
+			];
+			mean10 = [mean];
+			min10 = [min.min];
+			max10 = [max.max];
+			if (item['K-Lin']) {
+				for(var k = 0; k < item['K-Lin'].length && k < 9; k++) {
+					mean10.push(item['K-Lin'][k].mean);
+					min10.push(item['K-Lin'][k].min);
+					max10.push(item['K-Lin'][k].max);
+					k_link.push(item['K-Lin'][k]);
+				}
+			}
+			mean10 = mean10.sum();
+			min10 = min10.min().min
+			max10 = max10.max().max
+			var obj = {
+				'minData': minData,
+				'maxData': maxData,
+				'max': max.max,
+				'min': min.min,
+				'mean': mean,
+				'timeRQ': timeRQ,
+                'mean10': mean10,
+                'min10': min10,
+                'max10': max10,
+                'K-Lin': k_link
+			};
 			https.post('http://127.0.0.1:9999/HamstrerServlet/stock/edit', { where: { codeID: item.codeID},id:{'_id': item['_id'] }, setter: obj }).then(function(res) {
 				console.log('成功');
 			}).catch(function(err) {

@@ -4,10 +4,14 @@
 		"minData": [],
 		"maxData": [],
 		"name": String,
-		"max": String,
-		"min": String,
-		"mean": String,
-		"timeRQ": String
+		"max": Number,
+		"min": Number,
+		"mean": Number,
+		"timeRQ": String,
+		"mean10": Number,
+		"min10": Number,
+		"max10": Number,
+		"K-Lin": []
 	}), stockName)
 	var newList = new MyList[stockName](data);
 	console.log('addData', data)
