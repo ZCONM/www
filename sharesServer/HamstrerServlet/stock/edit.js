@@ -1,11 +1,17 @@
 MyList[stockName] = MyList[stockName] || mongoose.model(stockName, new Schema({
 	"codeID": String,
+	"status": Number,
 	"minData": [],
 	"maxData": [],
-	"max": String,
-	"min": String,
-	"mean": String,
-	"timeRQ": String
+	"name": String,
+	"max": Number,
+	"min": Number,
+	"mean": Number,
+	"timeRQ": String,
+	"mean10": Number,
+	"min10": Number,
+	"max10": Number,
+	"K-Lin": []
 }), stockName);
 console.log('EEE:', data.setter)
 var conditions =data.where, update = {'$set':data.setter}, options ={ multi:true};
