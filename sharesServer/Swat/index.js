@@ -299,13 +299,8 @@ function calculatingData(code, name) {
     }
 }
 schedule.scheduleJob('1 59 14 * * 1-5', function () {
-    console.log('执行任务setBOX');
     endEmail()
 });
-loading()
-setTimeout(() => {
-    endEmail()
-}, 3000)
 function endEmail() {
     for (let item in codeIDarr) {
         if (codeIDarr[item].codeID) {
@@ -335,8 +330,8 @@ function emailGet(to, tit, text) {
         console.log('邮件:', tit);
     })
 }
-// setBOX()
-// timeRQ = '2017-11-08'
+setBOX()
+timeRQ = '2017-11-10'
 function setBOX() {
     let current = 0;
     stock_find()

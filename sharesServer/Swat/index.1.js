@@ -2,6 +2,7 @@
 let setTime = init.setTime
 let longLine = require('./longLine')
 let stup = require('./stup')
+let setBOX = require('./setBOX')
 init.init()
 // ------------------------------------
 let $ = {
@@ -80,12 +81,6 @@ $.schedule.scheduleJob('* * 9-15 * * 1-5', function () {
     $.codeIDarr1.length > 0 || $.codeIDarr2.length > 0 ? gainCode() : loading();
     $.ruleCurr++
 });
-
-$.schedule.scheduleJob('5 30 15 * * 1-5', function () {
-    console.log('执行任务setBOX');
-    setBOX()
-});
-
 function gainCode() {
     if ($.ruleCurr % 5 == 0) {
         for (let i = 0; i < $.codeIDarr1.length; i++) {
@@ -101,3 +96,24 @@ function gainCode() {
         }
     }
 }
+// 发送最新股票评分
+$.schedule.scheduleJob('5 45 14 * * 1-5', function () {
+    console.log('发送最新股票评分');
+    $.https.get('http://127.0.0.1:9999/HamstrerServlet/api/grade')
+    for (let i = 0; i < $.codeIDarr1.length; i++) {
+        let item = $.codeIDarr1[i];
+        console.log("解析股票代码长：", item.codeID)
+        longLine.endEmail($);
+        
+    }
+    for (let i = 0; i < $.codeIDarr2.length; i++) {
+        let item = $.codeIDarr2[i];
+        console.log("解析股票代码短：", item.codeID)
+        stup.endEmail($);
+    }
+});
+// 执行任务收集信息
+$.schedule.scheduleJob('5 30 15 * * 1-5', function () {
+    console.log('执行任务setBOX');
+    setBOX($)
+});

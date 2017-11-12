@@ -58,7 +58,6 @@ function setTime() {
     return y + '-' + m + '-' + d;
 }
 // -------------------------------------------------------------------------------------------
-let axios = require('axios');
 let fileArr = [];
 let serverUrl = '';
 let curr = 0;
@@ -66,11 +65,12 @@ let MaxNumber = [];
 axios.get('http://127.0.0.1:9999/HamstrerServlet/stock/find').then(function(d) {
     d.data && (fileArr = d.data)
     getHtml(0, fileArr.length)
+    res.send('稍后会发送邮件给您！');
 })
 function getHtml(index, len){
     console.log('indexKS', index, len)
     if (index == len) {
-        // res.send(MaxNumber);
+        emailGet('851726398@qq.com', '股票评分', JSON.stringify(MaxNumber))
         console.log(MaxNumber)
         return
     }
@@ -211,3 +211,14 @@ function boll(k_link, o) {
     };
     return obj
 }
+
+// 发送邮件
+function emailGet(to, tit, text) {
+    email.send(to, tit, text, function (err, info) {
+        if (err) {
+            console.log(err);
+            return;
+        }
+        console.log('邮件:', tit);
+    })
+  }

@@ -5,7 +5,7 @@ module.exports = function ($) {
       console.log('currI', currI)
       let curr = currI || 0
       let each = 200
-      https.get('http://127.0.0.1:9999/HamstrerServlet/stock/find').then(function (d) {
+      $.https.get('http://127.0.0.1:9999/HamstrerServlet/stock/find').then(function (d) {
           for (let i = curr; i < d.data.length && (i % each != 0 || i == curr); i++) {
               let item = d.data[i];
               lookData(item, i, d.data.length - 1)
@@ -19,7 +19,7 @@ module.exports = function ($) {
   }
   // 收集当天信息
   function lookData(item, index) {
-      https.get('http://hq.sinajs.cn/list=' + item.codeID, {
+      $.https.get('http://hq.sinajs.cn/list=' + item.codeID, {
           'responseType': 'text/plain;charset=utf-8',
           'header': 'text/plain;charset=utf-8'
       }).then(function (res) {
@@ -74,7 +74,7 @@ module.exports = function ($) {
               'max10': max10,
               'K-Lin': k_link
           };
-          obj.max && https.post('http://127.0.0.1:9999/HamstrerServlet/stock/edit', {
+          obj.max && $.https.post('http://127.0.0.1:9999/HamstrerServlet/stock/edit', {
               where: { codeID: item.codeID },
               id: { '_id': item['_id'] },
               setter: obj

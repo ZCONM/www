@@ -95,6 +95,16 @@ module.exports = function (code, flag, $) {
           }
       }
     }
+    this.endEmail = function ($) {
+        for (let item in $.codeIDarr2) {
+            if ($.codeIDarr2[item].codeID) {
+                let code = $.codeIDarr2[item].codeID;
+                let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
+                let toEmail = code == 'sh600335' ? '423642318@qq.com' : '851726398@qq.com'
+                emailGet(toEmail, $.codeData[code].name + '[' + code + ']:清仓', '当前价：' + $.Sday[code][$.Sday[code].length - 1].toFixed(2));
+            }
+        }
+    }
 }
 
 // 发送邮件

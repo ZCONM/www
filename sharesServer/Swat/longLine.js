@@ -1,5 +1,9 @@
 let email = require('../getemail');
 module.exports = function (code, flag, $) {
+  if (!statusFlag($.codeData[code]['K-Lin'])) {
+      console.log('检测行情为跌势暂停交易')
+      return 
+  }
   $.https.get('http://hq.sinajs.cn/list=' + code, {
         'responseType': 'text/plain;charset=utf-8',
         'header': 'text/plain;charset=utf-8'
@@ -98,6 +102,25 @@ module.exports = function (code, flag, $) {
           }
       }
     }
+    this.endEmail = function ($) {
+        for (let item in $.codeIDarr1) {
+            if ($.codeIDarr1[item].codeID) {
+                let code = $.codeIDarr1[item].codeID;
+                let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
+                let toEmail = code == 'sh600335' ? '423642318@qq.com' : '851726398@qq.com'
+                if ($.soaringMax[code] == 1) {
+                    $.deal[code] && $.deal[code].up++
+                    emailGet(toEmail, $.codeData[code].name + '[' + code + ']:回降中', '当前价：' + $.Sday[code][$.Sday[code].length - 1].toFixed(2) + nubMon);
+                    $.soaringMax[code] = 0;
+                }
+                if ($.soaringMin[code] == 1) {
+                    $.deal[code] && $.deal[code].dow++
+                    emailGet(toEmail, $.codeData[code].name + '[' + code + ']:回升中', '当前价：' + $.Sday[code][$.Sday[code].length - 1].toFixed(2) + nubMon);
+                    $.soaringMin[code] = 0;
+                }
+            }
+        }
+    }
 }
 
 // 发送邮件
@@ -109,4 +132,9 @@ function emailGet(to, tit, text) {
       }
       console.log('邮件:', tit);
   })
+}
+
+// 检测行情
+function statusFlag (k_lin) {
+ return k_lin[0] && k_lin[1] && (k_lin[0].boll.MB - k_lin[1].boll.MB > 0)
 }
