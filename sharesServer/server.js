@@ -40,7 +40,8 @@ app.get('/HamstrerServlet/*', function(req, res){
         MyList: MyList,
         axios: axios,
         email: email,
-        console: console
+        console: console,
+        setTimeout: setTimeout
     };
     let url = req.url.split('?')[0];
     fs.readFile('.' + url + '.js', function(err, fileData) {
@@ -82,7 +83,8 @@ app.post('/HamstrerServlet/*', jsonParser, function(req, res){
         MyList: MyList,
         axios: axios,
         email: email,
-        console: console
+        console: console,
+        setTimeout: setTimeout
     };
     fs.readFile('.' + req.url + '.js', function(err, fileData) {
         vm.runInNewContext(fileData, sandbox, 'myfile.vm');

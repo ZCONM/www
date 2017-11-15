@@ -70,7 +70,8 @@ module.exports = function (code, flag, $) {
               }
           } else if (newest < minSum) {
               if (min.nub == lengths && $.soaringMin[code] == 0 && min.min < ($.minCurr[code].arr[$.minCurr[code].arr.length - 1] - $.minCurr[code].nub)) {
-                  emailGet(toEmail, $.codeData[code].name + '[' + code + ']:清仓', '当前价：' + $.Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最低：' + min.min.toFixed(2) + ';下行：' + minSum.toFixed(2) + ';下压：' + $.minCurr[code].nub);
+                  let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
+                  emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:清仓', '当前价：' + $.Sday[code][$.Sday[code].length - 1].toFixed(2) + nubMon);
                   $.soaringMin[code] = 1;
                   $.maxCurr[code].nub = 0
               } else if ($.soaringMin[code] == 1 && newest > (isMin > min.min + 0.03 ? isMin : min.min + 0.03)) {
@@ -95,16 +96,6 @@ module.exports = function (code, flag, $) {
           }
       }
     }
-    this.endEmail = function ($) {
-        for (let item in $.codeIDarr2) {
-            if ($.codeIDarr2[item].codeID) {
-                let code = $.codeIDarr2[item].codeID;
-                let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
-                let toEmail = code == 'sh600335' ? '423642318@qq.com' : '851726398@qq.com'
-                emailGet(toEmail, $.codeData[code].name + '[' + code + ']:清仓', '当前价：' + $.Sday[code][$.Sday[code].length - 1].toFixed(2));
-            }
-        }
-    }
 }
 
 // 发送邮件
@@ -116,4 +107,14 @@ function emailGet(to, tit, text) {
       }
       console.log('邮件:', tit);
   })
+}
+
+module.exports.endEmail = function ($) {
+    for (let item in $.codeIDarr2) {
+        if ($.codeIDarr2[item].codeID) {
+            let code = $.codeIDarr2[item].codeID;
+            let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
+            emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:清仓', '当前价：' + $.Sday[code][$.Sday[code].length - 1].toFixed(2) + nubMon);
+        }
+    }
 }

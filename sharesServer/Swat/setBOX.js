@@ -63,8 +63,8 @@ module.exports = function ($) {
           min10 = min10.min().min;
           max10 = max10.max().max;
           let obj = {
-              'minData': [Number(data[5]), (Number(data[4]) + Number(data[5])) / 2],
-              'maxData': [Number(data[4]), (Number(data[4]) + Number(data[5])) / 2],
+              'minData': $.Sday[code] && $.Sday[code].length > 0 ? maxJudgeMinus($.Sday[code]) : [Number(data[5]), (Number(data[4]) + Number(data[5])) / 2],
+              'maxData': $.Sday[code] && $.Sday[code].length > 0 ? maxJudgeMinus($.Sday[code]) : [Number(data[4]), (Number(data[4]) + Number(data[5])) / 2],
               'max': Number(data[4]),
               'min': Number(data[5]),
               'mean': (Number(data[4]) + Number(data[5])) / 2,
@@ -121,4 +121,45 @@ function boll(k_link, o) {
       DN: DN // 下线
   };
   return obj
+}
+
+// 计算高点
+function maxJudgeAdd(arrData) {
+    let i = 0,
+        n = 0,
+        maxData = [],
+        arr = [];
+    for(i = 0; i < size; i++) {
+        if(arrData[i] > mean) {
+            arr.push(arrData[i])
+        } else if(arr.length > 1) {
+            maxData.push(arr.max().max)
+            arr = [];
+        }
+    }
+    if(arr.length > 1) {
+        maxData.push(arr.max().max)
+        arr = [];
+    }
+    return maxData
+}
+// 计算低点
+function maxJudgeMinus(arrData) {
+    let i = 0,
+        n = 0,
+        minData = [],
+        arr = [];
+    for(i = 0; i < size; i++) {
+        if(arrData[i] < mean) {
+            arr.push(arrData[i])
+        } else if(arr.length > 1) {
+            minData.push(arr.min().min)
+            arr = [];
+        }
+    }
+    if(arr.length > 1) {
+        minData.push(arr.min().min)
+        arr = [];
+    }
+    return minData
 }

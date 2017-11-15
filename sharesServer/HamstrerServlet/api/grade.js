@@ -47,6 +47,25 @@ Array.prototype.sum = function (name) {
     }
     return sum / _this.length;
 }
+// 格式化排名
+Array.prototype.srotGrade = function () {
+    let _this = this
+    let arr = _this.reverse();
+    let str = '分数排名：<br />';
+    let index = 0;
+    _this.forEach(item => {
+        if (item) {
+            index++
+            str += '<p style="font-weight: 100;"><b style="color:#4093c6">'+ index +'. </b>'
+            item.forEach((obj, i) => {
+                if (i > 0) str += ','
+                str += '<span style="color:#4093c6">'+ obj.code +':</span>(' + obj.nub + ')'
+            })
+            str += '<p />'
+        }
+    })
+    return str;
+}
 // 格式化日期
 function setTime() {
     let myDate = new Date();
@@ -70,8 +89,21 @@ axios.get('http://127.0.0.1:9999/HamstrerServlet/stock/find').then(function(d) {
 function getHtml(index, len){
     console.log('indexKS', index, len)
     if (index == len) {
-        emailGet('851726398@qq.com', '股票评分', JSON.stringify(MaxNumber))
-        console.log(MaxNumber)
+        let code = MaxNumber[MaxNumber.length - 1][0].code
+        let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
+        console.log('data.type', !!data.type)
+        !!data.type && setTimeout(() => {
+            console.log('全仓')
+            emailGet('851726398@qq.com', '[' + code + ']:全仓', nubMon);
+            console.log('修改状态')
+            axios.post('/api/HamstrerServlet/stock/edit', {where: {codeID: code}, setter: {status: 2}}).then(res => {
+              console.log('edit', res)
+            }).catch((err) => {
+              console.log('edit', err)
+            })
+        }, 120000)
+        emailGet('851726398@qq.com,423642318@qq.com', '股票评分', MaxNumber.srotGrade())
+        // console.log(MaxNumber)
         return
     }
     if (!(fileArr[index] && fileArr[index]['K-Lin'])) {
@@ -130,7 +162,7 @@ function scoreNumber(k_link, code) {
     }
     function scoreFun (curr, len, k_link) {
         if (curr < len - 1 && k_link[curr].boll && k_link[curr + 1].boll) {
-            if (curr <= 2 && score.status == 0) {
+            if (curr < 2 && score.status == 0) {
                 if (curr == 0) {
                     if (k_link[curr].boll.MB > 10 && k_link[curr].boll.MB < 30) {
                         // score.numner = score.numner + (40 - k_link[curr].boll.MB) / 2
@@ -145,32 +177,33 @@ function scoreNumber(k_link, code) {
                         return
                     }
                     score.numner = score.numner + ((k_link[curr].boll.MB - k_link[curr].js) * 2)
-                    // if (code == 'sh600215') console.log('3', score.numner)
-                } else if (curr < 2 && k_link[curr].boll.MB - k_link[curr+1].boll.MB < 0) {
+                } else if (k_link[curr].boll.MB - k_link[curr+1].boll.MB < 0) {
                     score.status++
                 }
                 if (k_link[curr].boll.MB - k_link[curr+1].boll.MB > 0) {
-                    score.numner = score.numner + 5
-                    // if (code == 'sh600215') console.log('4', score.numner)
+                    score.numner += k_link[curr].boll.MB / k_link[curr+1].boll.MB
+                    if (k_link[curr].boll.MD - k_link[curr+1].boll.MD > 0) {
+                        score.numner += k_link[curr].boll.MD / k_link[curr+1].boll.MD
+                    }
                 }
-                if (k_link[curr].boll.MD - k_link[curr+1].boll.MD > 0) {
-                    let number = k_link[curr].boll.MD - k_link[curr+1].boll.MD
-                    score.numner = score.numner + (number > 0 ? number : -number)
-                    score.numner = score.numner + (k_link[curr].js - k_link[curr+1].js)
-                    // if (code == 'sh600215') console.log('5', score.numner)
-                }
-                // if (code == 'sh600215') console.log('6', score.numner)
+                
                 scoreFun(curr+1, len, k_link)
             } else if (score.status == 1) {
                 if (k_link[curr].boll.MB - k_link[curr+1].boll.MB < 0) {
-                    score.numner = score.numner + 5
-                    score.numner = score.numner + (k_link[curr].boll.MD - k_link[curr+1].boll.MD) * 100
-                    score.numner = score.numner + (k_link[curr+1].js - k_link[curr].js)
+                    score.numner += k_link[curr+1].boll.MB / k_link[curr].boll.MB
+                    if (k_link[curr].boll.MD - k_link[curr+1].boll.MD < 0) {
+                        score.numner += k_link[curr+1].boll.MD / k_link[curr].boll.MD
+                    }
                     // if (code == 'sh600215') console.log('dow', score.numner)
                 } else {
-                    return
+                    score.status++
                 }
                 scoreFun(curr+1, len, k_link)
+            } else if (curr > 2 && score.status == 3) {
+                score.numner += k_link[curr].boll.MB / k_link[1].boll.MB
+                return
+            } else {
+                return
             }
         }
     }
