@@ -1,33 +1,40 @@
 module.exports = function ($) {
   let current = 0;
+  let arrDataCode = [];
   stock_find()
   function stock_find(currI) {
       console.log('currI', currI)
       let curr = currI || 0
       let each = 200
       $.https.get('http://127.0.0.1:9999/HamstrerServlet/stock/find').then(function (d) {
-          for (let i = curr; i < d.data.length && (i % each != 0 || i == curr); i++) {
-              let item = d.data[i];
-              lookData(item, i, d.data.length - 1)
-          }
-          if (curr + each < d.data.length) {
-              setTimeout(() => {
-                  stock_find(curr + each)
-              }, 5000)
-          }
+        //   for (let i = curr; i < d.data.length && (i % each != 0 || i == curr); i++) {
+        //       let item = d.data[i];
+        //       arrDataCode.push(item)
+        //   }
+          arrDataCode = d.data
+          lookData(0, d.data.length)
+        //   if (curr + each < d.data.length) {
+        //       setTimeout(() => {
+        //           stock_find(curr + each)
+        //       }, 5000)
+        //   }
       })
   }
   // 收集当天信息
-  function lookData(item, index) {
+  function lookData(index, len) {
+      if (index == len) return
+      let item = arrDataCode[index] 
       $.https.get('http://hq.sinajs.cn/list=' + item.codeID, {
           'responseType': 'text/plain;charset=utf-8',
           'header': 'text/plain;charset=utf-8'
-      }).then(function (res) {
+      }).then(res => {
+          lookData(index + 1, len)
           let data = res.data.split(',');
           if (Number(data[3]) == 0) {
               current++
               return;
           }
+          let code = item.codeID;
           let timeRQ = data[30];
           let mean10, min10, max10, k_link;
           let o = {
@@ -76,13 +83,13 @@ module.exports = function ($) {
           };
           obj.max && $.https.post('http://127.0.0.1:9999/HamstrerServlet/stock/edit', {
               where: { codeID: item.codeID },
-              id: { '_id': item['_id'] },
               setter: obj
           }).then(function (res) {
               current++
               console.log('成功 ' + item.codeID + '-->', current)
           }).catch(function (err) {
-              console.log(err);
+              current++
+              console.log('失败 ', item.codeID + '-->', current);
           })
       })
   }

@@ -63,10 +63,10 @@ function loading() {
             $.maxCurr[item.codeID] = { nub: 0, arr: [] };
             $.minCurr[item.codeID] = { nub: 0, arr: [] };
             // if (item.codeID == 'sz300263') debugger
+            $.codeData[item.codeID] = item;
             if (item.status > 0) {
                 item.status == 1 && arr1.push(item)
                 item.status == 2 && arr2.push(item)
-                $.codeData[item.codeID] = item;
                 $.deal[item.codeID] = { up: 0, dow: 0 }
             }
         }
@@ -77,7 +77,7 @@ function loading() {
         console.log(err);
     });
 }
-$.schedule.scheduleJob('* * 9-15 * * 1-5', function () {
+$.schedule.scheduleJob('* * 9-14 * * 1-5', function () {
     $.codeIDarr1.length > 0 || $.codeIDarr2.length > 0 ? gainCode() : loading();
     $.ruleCurr++
 });
@@ -102,18 +102,15 @@ $.schedule.scheduleJob('5 45 14 * * 1-5', function () {
     $.https.get('http://127.0.0.1:9999/HamstrerServlet/api/grade?type=1')
     for (let i = 0; i < $.codeIDarr1.length; i++) {
         let item = $.codeIDarr1[i];
-        console.log("解析股票代码长：", item.codeID)
         longLine.endEmail($);
-        
     }
     for (let i = 0; i < $.codeIDarr2.length; i++) {
         let item = $.codeIDarr2[i];
-        console.log("解析股票代码短：", item.codeID)
         stup.endEmail($);
     }
 });
 // 执行任务收集信息
-// setBOX($)
+setBOX($)
 $.schedule.scheduleJob('5 10 15 * * 1-5', function () {
     console.log('执行任务setBOX');
     setBOX($)

@@ -330,7 +330,7 @@ function emailGet(to, tit, text) {
         console.log('邮件:', tit);
     })
 }
-// setBOX()
+setBOX()
 // timeRQ = '2017-11-13'
 function setBOX() {
     let current = 0;

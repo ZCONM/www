@@ -1,10 +1,9 @@
 let email = require('../getemail');
 module.exports = function (code, flag, $) {
-  $.https.get('http://hq.sinajs.cn/list=' + code, {
-        'responseType': 'text/plain;charset=utf-8',
-        'header': 'text/plain;charset=utf-8'
-    }).then(res => {
+  console.log('stup', code, flag)
+  $.https.get('http://hq.sinajs.cn/list=' + code).then(res => {
         let data = res.data.split(',');
+        console.log('stup '+code+' ->', flag, Number(data[3]))  
         if (Number(data[3]) == 0) {
             return
         }

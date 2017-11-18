@@ -1,11 +1,13 @@
 let email = require('../getemail');
 let flagCode = {};
 module.exports = function (code, flag, $) {
-  if (!statusFlag($.codeData[code]['K-Lin']) && !flagCode[code]) {
+  if (!statusFlag($.codeData[code]['K-Lin'])) {
       console.log('检测行情为跌势暂停交易')
-      let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
-      emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:清仓', '当前价：' + $.Sday[code][$.Sday[code].length - 1].toFixed(2) + nubMon);
-      flagCode[code] = true
+      if (!flagCode[code]) {
+          let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
+          emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:清仓', nubMon);
+          flagCode[code] = true
+      }
       return
   }
   flagCode[code] = false

@@ -77,6 +77,7 @@ function setTime() {
     return y + '-' + m + '-' + d;
 }
 // -------------------------------------------------------------------------------------------
+// let axios = require('axios')
 let fileArr = [];
 let serverUrl = '';
 let curr = 0;
@@ -101,7 +102,7 @@ function getHtml(index, len){
             }).catch((err) => {
               console.log('edit', err)
             })
-        }, 120000)
+        }, 1000 * 60 * (58 - (new Date()).getMinutes()))
         emailGet('851726398@qq.com,423642318@qq.com', '股票评分', MaxNumber.srotGrade())
         // console.log(MaxNumber)
         return
@@ -154,6 +155,7 @@ function scoreNumber(k_link, code) {
     let score = {status:0, numner:0};
     if (k_link.length > 2) {
         scoreFun(0, k_link.length, k_link)
+        score.numner += BF(k_link) // 反转趋势
         let name = parseInt(score.numner);
         if (name > 0) {
             if (!MaxNumber[name]) MaxNumber[name] = []
@@ -245,6 +247,34 @@ function boll(k_link, o) {
     return obj
 }
 
+// 反转趋势
+function BF(k_link) {
+    let nub = 0;
+    let flag = 0;
+    for (let i = 0;i < k_link.length;i++) {
+        let item = k_link[i]
+        if (item.boll) {
+            if (i < 2 && flag == 0) {
+                if (item.js < item.boll.DN) {
+                    nub += 5;
+                    flag++
+                }
+            } else if (i >= 2 && flag == 1) {
+                if (item.js < item.boll.DN) {
+                    nub -= 5;
+                    flag++
+                }
+                if (item.js > item.boll.UP) {
+                    nub += 5;
+                    flag++
+                }
+            } else {
+                return nub
+            }
+        }
+    }
+    return nub
+} 
 // 发送邮件
 function emailGet(to, tit, text) {
     email.send(to, tit, text, function (err, info) {
