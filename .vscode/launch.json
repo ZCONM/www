@@ -7,6 +7,12 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "minuteK",
+      "program": "${workspaceFolder}/sharesServer\\Swat\\minuteK.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "index.1",
       "program": "${workspaceFolder}/sharesServer\\Swat\\index.1.js"
     },

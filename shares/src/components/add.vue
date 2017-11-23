@@ -1,4 +1,3 @@
-<script src="../../config/index.js"></script>
 <template>
   <div>
   <div style="max-width: 500px;margin: 10px auto">
@@ -48,7 +47,7 @@
               prop="null"
               type=""
               label="操作">
-              <template scope="scope">
+              <template slot-scope="scope">
                 <el-button v-if="scope.row.dangqianjiage" type="primary" @click="onSubmit(scope.row)">立即添加</el-button>
               </template>
             </el-table-column>
@@ -98,7 +97,7 @@
             <el-table-column
               prop="status"
               label="状态">
-              <template scope="scope">
+              <template slot-scope="scope">
                 <el-radio-group v-model="scope.row.status" @change="editType(scope.row, scope.row.status)">
                   <el-radio :label="0">关闭</el-radio>
                   <el-radio :label="1">长线</el-radio>
@@ -169,16 +168,54 @@
       },
       GPAPI: function (code) {
         this.$axios.get('/sinajs/list=' + code).then((res) => {
-          var data = res.data.split(',')
-          var name = data[0].split('"')[1]
+          let data = res.data.split('=')[1].split('"').join('').split(';').join('').split(',')
+          let [
+            temp1, // 股票名称
+            temp2, // 今日开盘价
+            temp3, // 昨日收盘价
+            temp4, // 现价（股票当前价，收盘以后这个价格就是当日收盘价）
+            temp5, // 最高价
+            temp6, // 最低价
+            temp7, // 日期
+            temp8 // 时间
+          ] = code.substring(0, 2) !== 'hk' ? [
+            data[0],
+            data[1],
+            data[2],
+            data[3],
+            data[4],
+            data[5],
+            data[30],
+            data[31]
+          ] : [
+            data[1],
+            data[2],
+            data[3],
+            data[6],
+            data[4],
+            data[5],
+            data[17],
+            data[18]
+          ]
+          console.log('api ->',
+            temp1, // 股票名称
+            temp2, // 今日开盘价
+            temp3, // 昨日收盘价
+            temp4, // 现价（股票当前价，收盘以后这个价格就是当日收盘价）
+            temp5, // 最高价
+            temp6, // 最低价
+            temp7, // 日期
+            temp8 // 时间
+          )
+          var name = temp1
           var str = {
             'name': name,
             'daima': code,
-            'dangqianjiage': Number(data[3]),
-            'timeRQ': data[30],
-            'timeSJ': data[31]
+            'dangqianjiage': Number(temp4),
+            'timeRQ': temp7,
+            'timeSJ': temp8
           }
-          Number(data[3]) && this.list.push(str)
+          Number(temp4) && this.list.push(str)
         })
       },
       init () {

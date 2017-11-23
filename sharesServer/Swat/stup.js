@@ -2,36 +2,64 @@ let email = require('../getemail');
 module.exports = function (code, flag, $) {
   console.log('stup', code, flag)
   $.https.get('http://hq.sinajs.cn/list=' + code).then(res => {
-        let data = res.data.split(',');
-        console.log('stup '+code+' ->', flag, Number(data[3]))  
-        if (Number(data[3]) == 0) {
+        let data = res.data.split('=')[1].split('"').join('').split(';').join('').split(',');
+        let [
+        temp1, // 股票名称
+        temp2, // 今日开盘价
+        temp3, // 昨日收盘价
+        temp4, // 现价（股票当前价，收盘以后这个价格就是当日收盘价）
+        temp5, // 最高价
+        temp6, // 最低价
+        temp7, // 日期
+        temp8 // 时间
+        ] = code.substring(0,2) !== 'hk' ? [
+        data[0],
+        data[1],
+        data[2],
+        data[3],
+        data[4],
+        data[5],
+        data[30],
+        data[31]
+        ] : [
+        data[1],
+        data[2],
+        data[3],
+        data[6],
+        data[4],
+        data[5],
+        data[17],
+        data[18]
+        ]
+        console.log('stup '+code+' ->', flag, Number(temp4))  
+        if (Number(temp4) == 0) {
             return
         }
-        let nub = Number(data[3]);
+        let nub = Number(temp4);
         if ($.Sday[code]) {
           $.Sday[code].push(nub);
         } else {
           $.Sday[code] = [];
           $.Sday[code].push(nub);
         }
-        let name = data[0].split('"')[1] + '[' + code + ']';
+        let name = temp1 + '[' + code + ']';
         let str = {
             'name': name,
             'daima': code,
-            'dangqianjiage': Number(data[3]),
-            'timeRQ': data[30],
-            'timeSJ': data[31]
+            'dangqianjiage': Number(temp4),
+            'timeRQ': temp7,
+            'timeSJ': temp8
         };
-        $.timeRQ = data[30];
-        if (Number(data[3]) > 0 && !$.timeSJ[code + data[30] + data[31]]) {
-          $.timeSJ[code + data[30] + data[31]] = true
+        $.timeRQ = temp7;
+        if (Number(temp4) > 0 && !$.timeSJ[code + temp7 + temp8]) {
+          $.timeSJ[code + temp7 + temp8] = true
           $.https.post('http://127.0.0.1:9999/HamstrerServlet/stockAll/add', str).then(function (message) {
               console.log(code + ':存储最新价格' + nub.toFixed(2) + '!');
           }).catch(function (err) {
               console.log(err);
           });
         }
-        Number(data[3]) > 0 && flag && calculatingData(code, data[0].split('"')[1]);
+        Number(temp4) > 0 && flag && calculatingData(code, temp1);
     });
     function calculatingData(code, name) {
       console.log(code + ':分析价格!');

@@ -1,49 +1,77 @@
 let email = require('../getemail');
 let flagCode = {};
 module.exports = function (code, flag, $) {
-  if (!statusFlag($.codeData[code]['K-Lin'])) {
-      console.log('检测行情为跌势暂停交易')
-      if (!flagCode[code]) {
-          let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
-          emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:清仓', nubMon);
-          flagCode[code] = true
-      }
-      return
-  }
-  flagCode[code] = false
   $.https.get('http://hq.sinajs.cn/list=' + code, {
         'responseType': 'text/plain;charset=utf-8',
         'header': 'text/plain;charset=utf-8'
     }).then(res => {
-        let data = res.data.split(',');
-        if (Number(data[3]) == 0) {
+        let data = res.data.split('=')[1].split('"').join('').split(';').join('').split(',');
+        let [
+        temp1, // 股票名称
+        temp2, // 今日开盘价
+        temp3, // 昨日收盘价
+        temp4, // 现价（股票当前价，收盘以后这个价格就是当日收盘价）
+        temp5, // 最高价
+        temp6, // 最低价
+        temp7, // 日期
+        temp8 // 时间
+        ] = code.substring(0,2) !== 'hk' ? [
+        data[0],
+        data[1],
+        data[2],
+        data[3],
+        data[4],
+        data[5],
+        data[30],
+        data[31]
+        ] : [
+        data[1],
+        data[2],
+        data[3],
+        data[6],
+        data[4],
+        data[5],
+        data[17],
+        data[18]
+        ]
+        if (Number(temp4) == 0) {
             return
         }
-        let nub = Number(data[3]);
+        let nub = Number(temp4);
         if ($.Sday[code]) {
           $.Sday[code].push(nub);
         } else {
           $.Sday[code] = [];
           $.Sday[code].push(nub);
         }
-        let name = data[0].split('"')[1] + '[' + code + ']';
+        let name = temp1 + '[' + code + ']';
         let str = {
             'name': name,
             'daima': code,
-            'dangqianjiage': Number(data[3]),
-            'timeRQ': data[30],
-            'timeSJ': data[31]
+            'dangqianjiage': Number(temp4),
+            'timeRQ': temp7,
+            'timeSJ': temp8
         };
-        $.timeRQ = data[30];
-        if (Number(data[3]) > 0 && !$.timeSJ[code + data[30] + data[31]]) {
-          $.timeSJ[code + data[30] + data[31]] = true
+        $.timeRQ = temp7;
+        if (Number(temp4) > 0 && !$.timeSJ[code + temp7 + temp8]) {
+          $.timeSJ[code + temp7 + temp8] = true
           $.https.post('http://127.0.0.1:9999/HamstrerServlet/stockAll/add', str).then(function (message) {
               console.log(code + ':存储最新价格' + nub.toFixed(2) + '!');
           }).catch(function (err) {
               console.log(err);
           });
         }
-        Number(data[3]) > 0 && flag && calculatingData(code, data[0].split('"')[1]);
+        if (!statusFlag($.codeData[code]['K-Lin'])) {
+            console.log('检测行情为跌势暂停交易')
+            if (!flagCode[code]) {
+                let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
+                emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:清仓', nubMon);
+                flagCode[code] = true
+            }
+            return
+        }
+        flagCode[code] = false
+        Number(temp4) > 0 && flag && calculatingData(code, temp1);
     });
     function calculatingData(code, name) {
       console.log(code + ':分析价格!');
@@ -68,7 +96,7 @@ module.exports = function (code, flag, $) {
           $.maxCurr[code].arr[0] || ($.maxCurr[code].arr[0] = maxSum)
           $.minCurr[code].arr[0] || ($.minCurr[code].arr[0] = minSum)
           let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
-          let toEmail = code == 'sh600335' ? '423642318@qq.com' : '851726398@qq.com'
+          let toEmail = '851726398@qq.com'
           if (newest > maxSum) {
               if (max.nub == lengths && $.soaringMax[code] == 0 && max.max > ($.maxCurr[code].arr[$.maxCurr[code].arr.length - 1] + $.maxCurr[code].nub)) {
                   emailGet(toEmail, $.codeData[code].name + '[' + code + ']:今日飙升中', '当前价：' + $.Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2) + ';上行：' + maxSum.toFixed(2) + ';上压：' + $.maxCurr[code].nub);
@@ -124,7 +152,9 @@ function emailGet(to, tit, text) {
 
 // 检测行情
 function statusFlag (k_lin) {
- return k_lin[0] && k_lin[1] && (k_lin[0].boll.MB - k_lin[1].boll.MB > 0)
+ if (!k_lin[1]) return true
+ console.log('statusFlag', k_lin[0].boll.MB, k_lin[1].boll.MB)
+ return k_lin[0] && k_lin[1] && (k_lin[0].boll.MB - k_lin[1].boll.MB >= 0)
 }
 
 module.exports.endEmail = function ($) {

@@ -118,23 +118,51 @@ function getHtml(index, len){
         'responseType': 'text/plain;charset=utf-8',
         'header': 'text/plain;charset=utf-8'
     }).then(function (res) {
-        let data = res.data.split(',');
-        if (Number(data[3]) == 0) {
+        let data = res.data.split('=')[1].split('"').join('').split(';').join('').split(',');
+        let [
+          temp1, // 股票名称
+          temp2, // 今日开盘价
+          temp3, // 昨日收盘价
+          temp4, // 现价（股票当前价，收盘以后这个价格就是当日收盘价）
+          temp5, // 最高价
+          temp6, // 最低价
+          temp7, // 日期
+          temp8 // 时间
+        ] = item.codeID.substring(0,2) !== 'hk' ? [
+          data[0],
+          data[1],
+          data[2],
+          data[3],
+          data[4],
+          data[5],
+          data[30],
+          data[31]
+        ] : [
+          data[1],
+          data[2],
+          data[3],
+          data[6],
+          data[4],
+          data[5],
+          data[17],
+          data[18]
+        ]
+        if (Number(temp4) == 0) {
             getHtml(index + 1, len)
             return;
         }
-        let timeRQ = data[30];
+        let timeRQ = temp7;
         let k_link = [];
         let o = {
-            'max': Number(data[4]),
-            'min': Number(data[5]),
-            'mean': (Number(data[4]) + Number(data[5])) / 2,
+            'max': Number(temp5),
+            'min': Number(temp6),
+            'mean': (Number(temp5) + Number(temp6)) / 2,
             'boll': null,
-            'ks': Number(data[1]),
-            'js': Number(data[3]),
+            'ks': Number(temp2),
+            'js': Number(temp4),
             'deal': null,
-            'timeRQ': data[30],
-            'status': Number(data[3]) - Number(data[1])
+            'timeRQ': temp7,
+            'status': Number(temp4) - Number(temp2)
         }
         o.boll = boll(item['K-Lin'], o);
         item['K-Lin'][0] && item['K-Lin'][0].timeRQ != o.timeRQ && (k_link = [o]);
@@ -234,9 +262,9 @@ function boll(k_link, o) {
     }
     MD = Math.sqrt(sum / k1);
     MB = mean / k2;
-    let sumK = (arr.max().max / arr.sum() + (arr.sum() + (arr.sum() - arr.min().min)) / arr.sum()) / 2
-    UP = MB + (sumK * MD);
-    DN = MB - (sumK * MD);
+    let norm = ([].concat(JudgeMax(k_link), JudgeMinus(k_link))).sum()
+    UP = MB + (norm * MD);
+    DN = MB - (norm * MD);
     let obj = {
         MA: MA,
         MD: MD,
@@ -284,4 +312,49 @@ function emailGet(to, tit, text) {
         }
         console.log('邮件:', tit);
     })
+  }
+
+  // boll计算高点
+function JudgeMax (arrData) {
+    let [i, maxData, arr, arrs, index] = [0, [], [], []]
+    for (i = 0; i < arrData.length && arrData[i].boll; i++) {
+      if (arrData[i].js > arrData[i].boll.MB) {
+        arr.push(arrData[i].js)
+        arrs.push(arrData[i])
+      } else if (arr.length > 1) {
+        index = arr.max().nub
+        maxData.push((arrs[index].js - arrs[index].boll.MB) / arrs[index].boll.MD)
+        arr = []
+        arrs = []
+      }
+    }
+    if (arr.length > 1) {
+      index = arr.max().nub
+      maxData.push((arrs[index].js - arrs[index].boll.MB) / arrs[index].boll.MD)
+      arr = []
+      arrs = []
+    }
+    return maxData
+  }
+  // boll计算低点
+  function JudgeMinus (arrData) {
+    let [i, minData, arr, arrs, nub] = [0, [], [], []]
+    for (i = 0; i < arrData.length && arrData[i].boll; i++) {
+      if (arrData[i].js < arrData[i].boll.MB) {
+        arr.push(arrData[i].js)
+        arrs.push(arrData[i])
+      } else if (arr.length > 1) {
+        nub = arr.min().nub
+        minData.push((arrs[nub].boll.MB - arrs[nub].js) / arrs[nub].boll.MD)
+        arr = []
+        arrs = []
+      }
+    }
+    if (arr.length > 1) {
+      nub = arr.min().nub
+      minData.push((arrs[nub].boll.MB - arrs[nub].js) / arrs[nub].boll.MD)
+      arr = []
+      arrs = []
+    }
+    return minData
   }

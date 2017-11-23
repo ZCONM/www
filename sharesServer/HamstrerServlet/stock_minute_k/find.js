@@ -1,9 +1,14 @@
 console.log(1)
 MyList[stockName] = MyList[stockName] || mongoose.model(stockName, new Schema({
-    "name" : String,
-    "daima" : String,
-    "dangqianjiage" : Number,
-    "timeRQ" : String,
+    'code': String,
+    'max': Number,
+    'min': Number,
+    'mean': Number,
+    'boll': Object,
+    'ks': Number,
+    'js': Number,
+    'status': Number,
+    'timeRQ': String,
     "timeSJ" : String
 }), stockName);
 if (data.stor) {

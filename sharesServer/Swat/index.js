@@ -3,6 +3,7 @@ let setTime = init.setTime
 let longLine = require('./longLine')
 let stup = require('./stup')
 let setBOX = require('./setBOX')
+let minuteK = require('./minuteK')
 init.init()
 // ------------------------------------
 let $ = {
@@ -16,15 +17,14 @@ let $ = {
     soaringMax: {},
     soaringMin: {},
     dayFlag: {},
-    timeRQ: setTime(),
+    timeRQ: null,
     timeSJ: {},
     maxValue: {},
     minValue: {},
     maxCurr: {},
     minCurr: {},
     MaxNumber: [],
-    deal: {},
-    ruleCurr: 0
+    deal: {}
 }
 // 初始化
 $.schedule.scheduleJob('0 55 8 * * 1-5', function () {
@@ -36,7 +36,6 @@ $.schedule.scheduleJob('0 55 8 * * 1-5', function () {
     $.soaringMax = {}; // 邮件状态 0：飙升中   1：回降中
     $.soaringMin = {}; // 邮件状态 0：下降中   1：回升中
     $.dayFlag = {}; // 未使用
-    $.timeRQ = setTime(); // 当天日期
     $.timeSJ = {}; // 时间
     $.maxValue = {}; // 上行线
     $.minValue = {}; // 下行线
@@ -44,12 +43,12 @@ $.schedule.scheduleJob('0 55 8 * * 1-5', function () {
     $.minCurr = {}; // 下压值
     $.MaxNumber = []; // 未使用
     $.deal = {}; // 当天买卖次数（未使用）
-    $.ruleCurr = 0; // 计时器/秒
 });
 function loading() {
-    if ($.ruleCurr > 0) return
+    if ($.timeRQ == setTime()) return
     console.log('loading');
     $.Sday = {};
+    $.timeRQ = setTime(); // 当天日期
     $.https.post('http://127.0.0.1:9999/HamstrerServlet/stock/find').then(function (d) {
         console.log('stock/find');
         let arr1 = [], arr2 = [];
@@ -77,22 +76,28 @@ function loading() {
         console.log(err);
     });
 }
-$.schedule.scheduleJob('* * 9-14 * * 1-5', function () {
+$.schedule.scheduleJob('* * 9-15 * * 1-5', function () {
     $.codeIDarr1.length > 0 || $.codeIDarr2.length > 0 ? gainCode() : loading();
-    $.ruleCurr++
 });
 function gainCode() {
-    if ($.ruleCurr % 5 == 0) {
+    let time = new Date()
+    if ((time.getHours() > 9 || time.getMinutes() > 30) && time.getSeconds() % 5 == 0) {
+        console.log('time ->', time.getMinutes(), time.getSeconds())
+        time.getMinutes() % 5 == 0 && time.getSeconds() < 5 && minuteK($)
+        // minuteK($)
         for (let i = 0; i < $.codeIDarr1.length; i++) {
             let item = $.codeIDarr1[i];
-            console.log("解析股票代码长：", item.codeID)
-            longLine(item.codeID, !!item.max, $);
-            
+            if (item.codeID.substring(0, 2) == 'hk' || time.getHours() < 15) {
+                console.log("解析股票代码长：", item.codeID)
+                longLine(item.codeID, !!item.max, $);
+            }
         }
         for (let i = 0; i < $.codeIDarr2.length; i++) {
             let item = $.codeIDarr2[i];
-            console.log("解析股票代码短：", item.codeID)
-            stup(item.codeID, !!item.max, $);
+            if (item.codeID.substring(0, 2) == 'hk' || time.getHours() < 15) {
+                console.log("解析股票代码短：", item.codeID)
+                stup(item.codeID, !!item.max, $);
+            }
         }
     }
 }
@@ -110,7 +115,7 @@ $.schedule.scheduleJob('5 45 14 * * 1-5', function () {
     }
 });
 // 执行任务收集信息
-setBOX($)
+// setBOX($)
 $.schedule.scheduleJob('5 10 15 * * 1-5', function () {
     console.log('执行任务setBOX');
     setBOX($)

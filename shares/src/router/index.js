@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Hello from '@/components/Hello'
 import add from '@/components/add'
+import kLink from '@/components/k_link'
 Vue.use(Router)
 export default new Router({
   routes: [
@@ -19,6 +20,11 @@ export default new Router({
       path: '/add',
       name: 'add',
       component: add
+    },
+    {
+      path: '/k_link',
+      name: 'k_link',
+      component: kLink
     }
   ]
 })
