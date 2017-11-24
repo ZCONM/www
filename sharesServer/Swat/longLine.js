@@ -1,7 +1,7 @@
 let email = require('../getemail');
 let flagCode = {};
 module.exports = function (code, flag, $) {
-  $.https.get('http://hq.sinajs.cn/list=' + code, {
+  $.https.get('http://hq.sinajs.cn/list=' + (code.indexOf('hk') === -1 ? code : 'rt_' + code), {
         'responseType': 'text/plain;charset=utf-8',
         'header': 'text/plain;charset=utf-8'
     }).then(res => {
@@ -15,7 +15,7 @@ module.exports = function (code, flag, $) {
         temp6, // 最低价
         temp7, // 日期
         temp8 // 时间
-        ] = code.substring(0,2) !== 'hk' ? [
+        ] = code.indexOf('hk') === -1 ? [
         data[0],
         data[1],
         data[2],

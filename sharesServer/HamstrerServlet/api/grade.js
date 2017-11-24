@@ -114,7 +114,7 @@ function getHtml(index, len){
         return
     }
     let item = fileArr[index];
-    axios.get('http://hq.sinajs.cn/list=' + item.codeID, {
+    axios.get('http://hq.sinajs.cn/list=' + (item.codeID.indexOf('hk') === -1 ? item.codeID : 'rt_' + item.codeID), {
         'responseType': 'text/plain;charset=utf-8',
         'header': 'text/plain;charset=utf-8'
     }).then(function (res) {
@@ -128,7 +128,7 @@ function getHtml(index, len){
           temp6, // 最低价
           temp7, // 日期
           temp8 // 时间
-        ] = item.codeID.substring(0,2) !== 'hk' ? [
+        ] = item.codeID.indexOf('hk') === -1 ? [
           data[0],
           data[1],
           data[2],

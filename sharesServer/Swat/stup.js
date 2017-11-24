@@ -1,7 +1,7 @@
 let email = require('../getemail');
 module.exports = function (code, flag, $) {
   console.log('stup', code, flag)
-  $.https.get('http://hq.sinajs.cn/list=' + code).then(res => {
+  $.https.get('http://hq.sinajs.cn/list=' + (code.indexOf('hk') === -1 ? code : 'rt_' + code)).then(res => {
         let data = res.data.split('=')[1].split('"').join('').split(';').join('').split(',');
         let [
         temp1, // 股票名称
@@ -12,7 +12,7 @@ module.exports = function (code, flag, $) {
         temp6, // 最低价
         temp7, // 日期
         temp8 // 时间
-        ] = code.substring(0,2) !== 'hk' ? [
+        ] = code.indexOf('hk') === -1 ? [
         data[0],
         data[1],
         data[2],

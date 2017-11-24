@@ -178,7 +178,7 @@
             temp6, // 最低价
             temp7, // 日期
             temp8 // 时间
-          ] = code.substring(0, 2) !== 'hk' ? [
+          ] = code.indexOf('hk') === -1 ? [
             data[0],
             data[1],
             data[2],

@@ -120,3 +120,4 @@ $.schedule.scheduleJob('5 10 15 * * 1-5', function () {
     console.log('执行任务setBOX');
     setBOX($)
 });
+console.log('已开启统计计算服务')

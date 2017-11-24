@@ -1,6 +1,7 @@
 // let $ = { https: require('axios'), deal: {'sh601002': true}, timeRQ: ''}
 module.exports = function ($) {
   console.log('minuteK')
+  if (!$.timeFlag) $.timeFlag = {}
   let time = new Date()
   for (let code in $.deal) {
     if (time.getHours() < 15) {
@@ -38,8 +39,9 @@ module.exports = function ($) {
           "timeSJ" : res.data[0].timeSJ
         }
         data.boll = boll(dangqianjiage)
-        $.https.post('http://127.0.0.1:9999/HamstrerServlet/stock_minute_k/add', data).then(function (res) {
+        !$.timeFlag[data.daima + data.timeRQ + data.timeSJ] && $.https.post('http://127.0.0.1:9999/HamstrerServlet/stock_minute_k/add', data).then(function (res) {
           console.log('成功 ' + code + '-->')
+          $.timeFlag[data.daima + data.timeRQ + data.timeSJ] = true
         }).catch(function (err) {
           console.log('失败 ', code + '-->');
         })

@@ -208,11 +208,17 @@ export default {
           this.boll.MB = []
           this.boll.UP = []
           this.boll.DN = []
+          // this.boll.KS = []
+          // this.boll.Max = []
+          // this.boll.Min = []
           let sj = {}
           this.list.forEach(item => {
             if (!sj[item.timeRQ] && item.boll) {
               this.boll.SJ.push(item.timeRQ)
               this.boll.JS.push(item.js)
+              // this.boll.KS.push(item.ks)
+              // this.boll.Max.push(item.max)
+              // this.boll.Min.push(item.min)
               this.boll.MB.push(item.boll.MB)
               this.boll.UP.push(item.boll.MB + (item.boll.MD * norm))
               this.boll.DN.push(item.boll.MB - (item.boll.MD * norm))
@@ -230,6 +236,7 @@ export default {
         })
         .catch(response => {
           console.error(response)
+          this.status = 0
           this.$message('刷新数据失败!')
         })
     },
@@ -243,13 +250,13 @@ export default {
         data: {
           code: obj.codeID
         },
-        limit: 20
+        limit: 500
       }
       this.$axios
         .post('/api/HamstrerServlet/stock_minute_k/find', data)
         .then(d => {
           this.list = d.data
-          let norm = sums([].concat(maxJudgeAdd(this.list), maxJudgeMinus(this.list)))
+          // let norm = sums([].concat(maxJudgeAdd(this.list), maxJudgeMinus(this.list)))
           // let norm = max([].concat(maxJudgeAdd(this.list), maxJudgeMinus(this.list))).max
           // console.log('norm', norm, maxJudgeAdd(this.list), maxJudgeMinus(this.list))
           this.boll.SJ = []
@@ -257,16 +264,22 @@ export default {
           this.boll.MB = []
           this.boll.UP = []
           this.boll.DN = []
+          // this.boll.KS = []
+          // this.boll.Max = []
+          // this.boll.Min = []
           let sj = {}
           this.list.forEach(item => {
             if (!sj[item.timeRQ + item.timeSJ] && item.boll) {
               this.boll.SJ.push(item.timeSJ)
               this.boll.JS.push(item.js)
+              // this.boll.KS.push(item.ks)
+              // this.boll.Max.push(item.max)
+              // this.boll.Min.push(item.min)
               this.boll.MB.push(item.boll.MB)
-              this.boll.UP.push(item.boll.MB + (item.boll.MD * norm))
-              this.boll.DN.push(item.boll.MB - (item.boll.MD * norm))
-              // this.boll.UP.push(item.boll.UP)
-              // this.boll.DN.push(item.boll.DN)
+              // this.boll.UP.push(item.boll.MB + (item.boll.MD * norm))
+              // this.boll.DN.push(item.boll.MB - (item.boll.MD * norm))
+              this.boll.UP.push(item.boll.UP)
+              this.boll.DN.push(item.boll.DN)
               sj[item.timeRQ + item.timeSJ] = true
             }
           })
@@ -280,6 +293,7 @@ export default {
         })
         .catch(response => {
           console.error(response)
+          this.status = 0
           this.$message('刷新数据失败!')
         })
     },
@@ -295,6 +309,10 @@ export default {
           this.echartload()
         })
       }, 1000)
+      // let K = []
+      // this.boll.JS.forEach((item, i) => {
+      //   K.push([this.boll.KS[i], this.boll.JS[i], this.boll.Min[i], this.boll.Max[i]])
+      // })
       let myChart = this.$echarts.init(document.getElementById('echart'))
       // 绘制图表
       myChart.title = '5分钟bull值'
@@ -422,6 +440,25 @@ export default {
             smooth: true,
             data: this.boll.MB
           },
+          // {
+          //   type: 'candlestick',
+          //   name: '日K',
+          //   data: K,
+          //   itemStyle: {
+          //     normal: {
+          //       color: '#ef232a',
+          //       color0: '#14b143',
+          //       borderColor: '#ef232a',
+          //       borderColor0: '#14b143'
+          //     },
+          //     emphasis: {
+          //       color: 'black',
+          //       color0: '#444',
+          //       borderColor: 'black',
+          //       borderColor0: '#444'
+          //     }
+          //   }
+          // }
           {
             name: 'JS',
             type: 'line',
