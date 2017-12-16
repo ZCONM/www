@@ -1,34 +1,32 @@
 module.exports = function ($) {
   let current = 0;
   let arrDataCode = [];
+  $.status = {}
   stock_find()
   function stock_find(currI) {
       console.log('currI', currI)
       let curr = currI || 0
       let each = 200
       $.https.get('http://127.0.0.1:9999/HamstrerServlet/stock/find').then(function (d) {
-        //   for (let i = curr; i < d.data.length && (i % each != 0 || i == curr); i++) {
-        //       let item = d.data[i];
-        //       arrDataCode.push(item)
-        //   }
-          arrDataCode = d.data
-          lookData(0, d.data.length)
-        //   if (curr + each < d.data.length) {
-        //       setTimeout(() => {
-        //           stock_find(curr + each)
-        //       }, 5000)
-        //   }
+          for (let i = curr; i < d.data.length && (i % each != 0 || i == curr); i++) {
+              let item = d.data[i];
+              lookData(i, d.data.length, item)
+          }
+          if (curr + each < d.data.length) {
+              setTimeout(() => {
+                  stock_find(curr + each)
+              }, 5000)
+          }
       })
   }
   // 收集当天信息
-  function lookData(index, len) {
-      if (index == len) return
-      let item = arrDataCode[index]
+  function lookData(index, len, item) {
+      console.log('lookData', index, len)
+      if (!item) return
       $.https.get('http://hq.sinajs.cn/list=' + item.codeID, {
           'responseType': 'text/plain;charset=utf-8',
           'header': 'text/plain;charset=utf-8'
       }).then(res => {
-        lookData(index + 1, len)
         let data = res.data.split('=')[1].split('"').join('').split(';').join('').split(',');
         let [
         temp1, // 股票名称
@@ -60,6 +58,7 @@ module.exports = function ($) {
         ]
         if (Number(temp4) == 0) {
             current++
+            lookData(index + 1, len)
             return;
         }
         let code = item.codeID;
@@ -99,7 +98,7 @@ module.exports = function ($) {
         max10 = max10.max().max;
         let obj = {
             'minData': $.Sday[code] && $.Sday[code].length > 0 ? maxJudgeMinus($.Sday[code]) : [Number(temp6), (Number(temp5) + Number(temp6)) / 2],
-            'maxData': $.Sday[code] && $.Sday[code].length > 0 ? maxJudgeMinus($.Sday[code]) : [Number(temp5), (Number(temp5) + Number(temp6)) / 2],
+            'maxData': $.Sday[code] && $.Sday[code].length > 0 ? maxJudgeAdd($.Sday[code]) : [Number(temp5), (Number(temp5) + Number(temp6)) / 2],
             'max': Number(temp5),
             'min': Number(temp6),
             'mean': (Number(temp5) + Number(temp6)) / 2,
@@ -149,7 +148,7 @@ function boll(k_link, o) {
     MD: MD,
     MB: MB
   } 
-  let norm = ([].concat(JudgeMax(k_link), JudgeMinus(k_link))).sum() || 2
+  let norm = k_link.length > 0 ? (([].concat(JudgeMax(k_link), JudgeMinus(k_link))).sum() || 2) : 2
   UP = MB + (norm * MD);
   DN = MB - (norm * MD);
   let obj = {
@@ -180,7 +179,7 @@ function maxJudgeAdd(arrData) {
         maxData.push(arr.max().max)
         arr = [];
     }
-    return maxData
+    return maxData || []
 }
 // 计算低点
 function maxJudgeMinus(arrData) {
@@ -200,7 +199,7 @@ function maxJudgeMinus(arrData) {
         minData.push(arr.min().min)
         arr = [];
     }
-    return minData
+    return minData || []
 }
 
 // boll计算高点

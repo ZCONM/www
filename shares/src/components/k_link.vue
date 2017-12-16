@@ -60,7 +60,7 @@
         </template>
       </div>
   </div>
-  <el-dialog :title="'' + code + ' -- k线图'" :visible.sync="flag" @open="echartEv">
+  <el-dialog :title="'' + code + ' -- k线图'" width="712px" :visible.sync="flag" @open="echartEv">
     <div id="echart" style="width: 674px;height:300px"></div>
   </el-dialog>
   </div>
@@ -120,7 +120,9 @@ function maxJudgeAdd (arrData) {
       arrs.push(arrData[i])
     } else if (arr.length > 1) {
       index = max(arr).nub
-      maxData.push((arrs[index].js - arrs[index].boll.MB) / arrs[index].boll.MD)
+      maxData.push(
+        (arrs[index].js - arrs[index].boll.MB) / arrs[index].boll.MD
+      )
       arr = []
       arrs = []
     }
@@ -201,29 +203,34 @@ export default {
         .then(d => {
           console.log('d', d)
           this.list = d.data[0]['K-Lin']
-          let norm = sums([].concat(maxJudgeAdd(this.list), maxJudgeMinus(this.list)))
-          console.log('norm', norm, maxJudgeAdd(this.list), maxJudgeMinus(this.list))
+          let norm = sums(
+            [].concat(maxJudgeAdd(this.list), maxJudgeMinus(this.list))
+          )
+          console.log(
+            'norm',
+            norm,
+            maxJudgeAdd(this.list),
+            maxJudgeMinus(this.list)
+          )
           this.boll.SJ = []
           this.boll.JS = []
           this.boll.MB = []
           this.boll.UP = []
           this.boll.DN = []
-          // this.boll.KS = []
-          // this.boll.Max = []
-          // this.boll.Min = []
+          this.boll.KS = []
+          this.boll.Max = []
+          this.boll.Min = []
           let sj = {}
           this.list.forEach(item => {
             if (!sj[item.timeRQ] && item.boll) {
               this.boll.SJ.push(item.timeRQ)
               this.boll.JS.push(item.js)
-              // this.boll.KS.push(item.ks)
-              // this.boll.Max.push(item.max)
-              // this.boll.Min.push(item.min)
+              this.boll.KS.push(item.ks)
+              this.boll.Max.push(item.max)
+              this.boll.Min.push(item.min)
               this.boll.MB.push(item.boll.MB)
-              this.boll.UP.push(item.boll.MB + (item.boll.MD * norm))
-              this.boll.DN.push(item.boll.MB - (item.boll.MD * norm))
-              // this.boll.UP.push(item.boll.UP)
-              // this.boll.DN.push(item.boll.DN)
+              this.boll.UP.push(item.boll.MB + item.boll.MD * norm)
+              this.boll.DN.push(item.boll.MB - item.boll.MD * norm)
               sj[item.timeRQ] = true
             }
           })
@@ -232,6 +239,9 @@ export default {
           this.boll.MB.reverse()
           this.boll.UP.reverse()
           this.boll.DN.reverse()
+          this.boll.KS.reverse()
+          this.boll.Max.reverse()
+          this.boll.Min.reverse()
           this.flag = true
         })
         .catch(response => {
@@ -250,34 +260,29 @@ export default {
         data: {
           code: obj.codeID
         },
-        limit: 500
+        limit: 100
       }
       this.$axios
         .post('/api/HamstrerServlet/stock_minute_k/find', data)
         .then(d => {
           this.list = d.data
-          // let norm = sums([].concat(maxJudgeAdd(this.list), maxJudgeMinus(this.list)))
-          // let norm = max([].concat(maxJudgeAdd(this.list), maxJudgeMinus(this.list))).max
-          // console.log('norm', norm, maxJudgeAdd(this.list), maxJudgeMinus(this.list))
           this.boll.SJ = []
           this.boll.JS = []
           this.boll.MB = []
           this.boll.UP = []
           this.boll.DN = []
-          // this.boll.KS = []
-          // this.boll.Max = []
-          // this.boll.Min = []
+          this.boll.KS = []
+          this.boll.Max = []
+          this.boll.Min = []
           let sj = {}
           this.list.forEach(item => {
             if (!sj[item.timeRQ + item.timeSJ] && item.boll) {
               this.boll.SJ.push(item.timeSJ)
               this.boll.JS.push(item.js)
-              // this.boll.KS.push(item.ks)
-              // this.boll.Max.push(item.max)
-              // this.boll.Min.push(item.min)
+              this.boll.KS.push(item.ks)
+              this.boll.Max.push(item.max)
+              this.boll.Min.push(item.min)
               this.boll.MB.push(item.boll.MB)
-              // this.boll.UP.push(item.boll.MB + (item.boll.MD * norm))
-              // this.boll.DN.push(item.boll.MB - (item.boll.MD * norm))
               this.boll.UP.push(item.boll.UP)
               this.boll.DN.push(item.boll.DN)
               sj[item.timeRQ + item.timeSJ] = true
@@ -288,6 +293,9 @@ export default {
           this.boll.MB.reverse()
           this.boll.UP.reverse()
           this.boll.DN.reverse()
+          this.boll.KS.reverse()
+          this.boll.Max.reverse()
+          this.boll.Min.reverse()
           !cb && (this.flag = true)
           cb && cb()
         })
@@ -304,109 +312,127 @@ export default {
     },
     echartload () {
       // 基于准备好的dom，初始化echarts实例
-      this.status === 2 && this.flag && setTimeout(() => {
-        this.minuteLink(this.obj, () => {
-          this.echartload()
-        })
-      }, 1000)
-      // let K = []
-      // this.boll.JS.forEach((item, i) => {
-      //   K.push([this.boll.KS[i], this.boll.JS[i], this.boll.Min[i], this.boll.Max[i]])
-      // })
+      // this.status === 2 &&
+      //   this.flag &&
+      //   setTimeout(() => {
+      //     this.minuteLink(this.obj, () => {
+      //       this.echartload()
+      //     })
+      //   }, 1000)
+      let K = []
+      this.boll.JS.forEach((item, i) => {
+        K.push([
+          this.boll.KS[i],
+          this.boll.JS[i],
+          this.boll.Min[i],
+          this.boll.Max[i]
+        ])
+      })
       let myChart = this.$echarts.init(document.getElementById('echart'))
       // 绘制图表
       myChart.title = '5分钟bull值'
-      let colors = ['#5793f3', '#d14a61', '#675bba', '#ccc']
-      let option = {
-        color: colors,
+
+      let data = {
+        categoryData: this.boll.SJ,
+        values: K,
+        volumns: []
+      }
+      myChart.setOption({
+        backgroundColor: '#eee',
+        animation: false,
+        legend: {
+          bottom: 10,
+          left: 'center',
+          data: ['Dow-Jones index', 'UP', 'MB', 'DN']
+        },
         tooltip: {
-          trigger: 'none',
+          trigger: 'axis',
           axisPointer: {
             type: 'cross'
+          },
+          backgroundColor: 'rgba(245, 245, 245, 0.8)',
+          borderWidth: 1,
+          borderColor: '#ccc',
+          padding: 10,
+          textStyle: {
+            color: '#000'
+          },
+          position: function (pos, params, el, elRect, size) {
+            let obj = { top: 10 }
+            obj[['left', 'right'][+(pos[0] < size.viewSize[0] / 2)]] = 30
+            return obj
+          },
+          extraCssText: 'width: 170px'
+        },
+        axisPointer: {
+          link: { xAxisIndex: 'all' },
+          label: {
+            backgroundColor: '#777'
           }
         },
-        legend: {
-          data: ['UP', 'DN']
+        toolbox: {
+          feature: {
+            dataZoom: {
+              yAxisIndex: false
+            },
+            brush: {
+              type: ['lineX', 'clear']
+            }
+          }
         },
-        grid: {
-          top: 70,
-          bottom: 50
+        brush: {
+          xAxisIndex: 'all',
+          brushLink: 'all',
+          outOfBrush: {
+            colorAlpha: 0.1
+          }
         },
+        grid: [
+          {
+            left: '10%',
+            right: '8%',
+            height: '50%'
+          },
+          {
+            left: '10%',
+            right: '8%',
+            bottom: '20%',
+            height: '15%'
+          }
+        ],
         xAxis: [
           {
             type: 'category',
-            axisTick: {
-              alignWithLabel: true
-            },
-            axisLine: {
-              onZero: false,
-              lineStyle: {
-                color: colors[1]
-              }
-            },
+            data: data.categoryData,
+            scale: true,
+            boundaryGap: false,
+            axisLine: { onZero: false },
+            splitLine: { show: false },
+            splitNumber: 20,
+            min: 'dataMin',
+            max: 'dataMax',
             axisPointer: {
-              label: {
-                formatter: function (params) {
-                  return 'UP值  ' + params.value + (params.seriesData.length ? '：' + params.seriesData[0].data : '')
-                }
-              }
-            },
-            data: this.boll.SJ
-          },
-          {
-            type: 'category',
-            axisTick: {
-              alignWithLabel: true
-            },
-            axisLine: {
-              onZero: false,
-              lineStyle: {
-                color: colors[1]
-              }
-            },
-            axisPointer: {
-              label: {
-                formatter: function (params) {
-                  return 'DN值  ' + params.value + (params.seriesData.length ? '：' + params.seriesData[0].data : '')
-                }
-              }
-            },
-            data: this.boll.SJ
-          },
-          {
-            type: 'category',
-            axisTick: {
-              alignWithLabel: true
-            },
-            axisLine: {
-              onZero: false,
-              lineStyle: {
-                color: colors[2]
-              }
-            },
-            axisPointer: {
-              label: {
-                formatter: function (params) {
-                  return 'MB值  ' + params.value + (params.seriesData.length ? '：' + params.seriesData[0].data : '')
-                }
-              }
+              z: 100
             }
           },
           {
             type: 'category',
-            axisTick: {
-              alignWithLabel: true
-            },
-            axisLine: {
-              onZero: false,
-              lineStyle: {
-                color: colors[0]
-              }
-            },
+            gridIndex: 1,
+            data: data.categoryData,
+            scale: true,
+            boundaryGap: false,
+            axisLine: { onZero: false },
+            axisTick: { show: false },
+            splitLine: { show: false },
+            axisLabel: { show: false },
+            splitNumber: 20,
+            min: 'dataMin',
+            max: 'dataMax',
             axisPointer: {
               label: {
                 formatter: function (params) {
-                  return '当前值  ' + params.value + (params.seriesData.length ? '：' + params.seriesData[0].data : '')
+                  let seriesValue = (params.seriesData[0] || {}).value
+                  return (params.value + (seriesValue != null ? '\n' + this.$echarts.format.addCommas(seriesValue) : ''))
                 }
               }
             }
@@ -414,96 +440,117 @@ export default {
         ],
         yAxis: [
           {
-            type: 'value',
-            min: function (value) {
-              return parseInt(value.min * 100) / 100 - 0.01
+            scale: true,
+            splitArea: {
+              show: true
             }
+          },
+          {
+            scale: true,
+            gridIndex: 1,
+            splitNumber: 2,
+            axisLabel: { show: false },
+            axisLine: { show: false },
+            axisTick: { show: false },
+            splitLine: { show: false }
+          }
+        ],
+        dataZoom: [
+          {
+            type: 'inside',
+            xAxisIndex: [0, 1],
+            start: 0,
+            end: 100
+          },
+          {
+            show: false,
+            xAxisIndex: [0, 1],
+            type: 'slider',
+            top: '85%',
+            start: 0,
+            end: 100
           }
         ],
         series: [
           {
-            name: 'UP',
-            type: 'line',
-            xAxisIndex: 1,
-            smooth: true,
-            data: this.boll.UP
+            name: 'Dow-Jones index',
+            type: 'candlestick',
+            data: data.values,
+            itemStyle: {
+              normal: {
+                color: '#06B800',
+                color0: '#FA0000',
+                borderColor: null,
+                borderColor0: null,
+                opacity: 0.5
+              }
+            },
+            tooltip: {
+              formatter: function (param) {
+                param = param[0]
+                return [
+                  'Date: ' + param.name + '<hr size=1 style="margin: 3px 0">',
+                  'Open: ' + param.data[0] + '<br/>',
+                  'Close: ' + param.data[1] + '<br/>',
+                  'Lowest: ' + param.data[2] + '<br/>',
+                  'Highest: ' + param.data[3] + '<br/>'
+                ].join('')
+              }
+            }
           },
           {
-            name: 'DN',
+            name: 'UP',
             type: 'line',
+            data: this.boll.UP,
             smooth: true,
-            data: this.boll.DN
+            lineStyle: {
+              normal: { opacity: 0.5 }
+            }
           },
           {
             name: 'MB',
             type: 'line',
+            data: this.boll.MB,
             smooth: true,
-            data: this.boll.MB
+            lineStyle: {
+              normal: { opacity: 0.5 }
+            }
           },
-          // {
-          //   type: 'candlestick',
-          //   name: '日K',
-          //   data: K,
-          //   itemStyle: {
-          //     normal: {
-          //       color: '#ef232a',
-          //       color0: '#14b143',
-          //       borderColor: '#ef232a',
-          //       borderColor0: '#14b143'
-          //     },
-          //     emphasis: {
-          //       color: 'black',
-          //       color0: '#444',
-          //       borderColor: 'black',
-          //       borderColor0: '#444'
-          //     }
-          //   }
-          // }
           {
-            name: 'JS',
+            name: 'DN',
             type: 'line',
+            data: this.boll.DN,
             smooth: true,
-            data: this.boll.JS
+            lineStyle: {
+              normal: { opacity: 0.5 }
+            }
+          },
+          {
+            name: 'Volumn',
+            type: 'bar',
+            xAxisIndex: 1,
+            yAxisIndex: 1,
+            data: data.volumns
           }
         ]
-      }
-      myChart.setOption(option)
+      }, true)
     }
-    // 计算布林值
-    // boll (Arr) {
-    //   let klink = Arr
-    //   let [MA, MD, MB, UP, DN, mean, sum, arr, i1, k1, k2] = [0, 0, 0, 0, 0, 0, 0, [], 0, 0, 0]
-    //   for (let i = 0; i < klink.length && i < 20; i++) {
-    //     MA += Number(klink[i])
-    //     arr.push(Number(klink[i]))
-    //     i1++
-    //   }
-    //   MA = MA / i1
-    //   for (let k = 0; k < klink.length && k < 20; k++) {
-    //     let item = klink[k]
-    //     if (k < klink.length - 1) {
-    //       sum += Math.pow(Number(item) - MA, 2)
-    //       k1++
-    //     }
-    //     if (k > 0) {
-    //       mean += Number(item)
-    //       k2++
-    //     }
-    //   }
-    //   MD = Math.sqrt(sum / k1)
-    //   MB = mean / k2
-    //   let sumK = (max(arr).max / sums(arr) + (sums(arr) + (sums(arr) - min(arr).min)) / sums(arr)) / 2
-    //   UP = MB + (sumK * MD)
-    //   DN = MB - (sumK * MD)
-    //   let obj = {
-    //     MA: MA, // N日内的收盘价之和÷N
-    //     MD: MD, // 计算标准差MD
-    //     MB: MB, // 中线
-    //     UP: UP, // 上线
-    //     DN: DN // 下线
-    //   }
-    //   return obj
-    // }
   }
 }
+// 平均值
+// function calculateMA (dayCount, data) {
+//   let result = []
+//   for (let i = 0, len = data.values.length; i < len; i++) {
+//     if (i < dayCount) {
+//       result.push('-')
+//       continue
+//     }
+//     let sum = 0
+//     for (let j = 0; j < dayCount; j++) {
+//       sum += data.values[i - j][1]
+//     }
+//     result.push(+(sum / dayCount).toFixed(3))
+//   }
+//   return result
+// }
 </script>

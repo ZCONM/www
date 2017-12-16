@@ -100,8 +100,14 @@
               <template slot-scope="scope">
                 <el-radio-group v-model="scope.row.status" @change="editType(scope.row, scope.row.status)">
                   <el-radio :label="0">关闭</el-radio>
-                  <el-radio :label="1">长线</el-radio>
-                  <el-radio :label="2">短线</el-radio>
+                  <template v-if="scope.row.codeID.indexOf('hk') == -1">
+                    <el-radio :label="1">长线</el-radio>
+                    <el-radio :label="2">短线</el-radio>
+                  </template>
+                  <template v-else>
+                    <el-radio :label="3">MACD</el-radio>
+                    <el-radio :label="4">BOLL</el-radio>
+                  </template>
                 </el-radio-group>
               </template>
             </el-table-column>

@@ -1,12 +1,11 @@
 // let $ = { https: require('axios'), deal: {'sh601002': true}, timeRQ: ''}
 module.exports = function ($) {
   console.log('minuteK')
-  if (!$.timeFlag) $.timeFlag = {}
   let time = new Date()
   for (let code in $.deal) {
     if (time.getHours() < 15) {
       getHtml(code, $.timeRQ)
-    } else if (code.substring(0, 2) != 'hk') {
+    } else if (code.substring(0, 2) == 'hk') {
       getHtml(code, $.timeRQ)
     }
   }
@@ -16,32 +15,38 @@ module.exports = function ($) {
       data: {
         daima: code
       },
-      limit: 60
+      limit: 300
     }
     $.https.post('http://127.0.0.1:9999/HamstrerServlet/stockAll/find', data).then(res => {
       if (res.data && res.data.length > 0) {
-        // console.log('res.data', res.data)
-        let dangqianjiage = [];
-        // console.log('res ->', res.data[0], res.data[res.data.length - 1])
+        let dangqianjiage = []
+        let flag = {}
         res.data.forEach(element => {
-          dangqianjiage.push(element.dangqianjiage)
+          if ($.timeRQ == element.timeRQ && formatTime((new Date()).getTime() - 1000 * 60 * 5) < element.timeSJ && !flag[element.timeSJ]) {
+            dangqianjiage.push(element.dangqianjiage)
+            flag[element.timeSJ] = true
+          }
         });
+
+        if (dangqianjiage.length < 3) {
+          return console.log(code + '5分钟数据不够，跳过')
+        }
         let data = {
           'code': res.data[0].daima,
           'max': dangqianjiage.max().max,
           'min': dangqianjiage.min().min,
           'mean': dangqianjiage.sum(),
           'boll': null,
-          'ks': dangqianjiage[0],
-          'js': dangqianjiage[dangqianjiage.length - 1],
-          'status': dangqianjiage[dangqianjiage.length - 1] - dangqianjiage[0],
+          'ks': dangqianjiage[dangqianjiage.length - 1],
+          'js': dangqianjiage[0],
+          'status': dangqianjiage[0] - dangqianjiage[dangqianjiage.length - 1],
           'timeRQ': res.data[0].timeRQ,
           "timeSJ" : res.data[0].timeSJ
         }
         data.boll = boll(dangqianjiage)
-        !$.timeFlag[data.daima + data.timeRQ + data.timeSJ] && $.https.post('http://127.0.0.1:9999/HamstrerServlet/stock_minute_k/add', data).then(function (res) {
+        !$.dayFlag[data.code + data.timeRQ + data.timeSJ] && $.https.post('http://127.0.0.1:9999/HamstrerServlet/stock_minute_k/add', data).then(function (res) {
           console.log('成功 ' + code + '-->')
-          $.timeFlag[data.daima + data.timeRQ + data.timeSJ] = true
+          $.dayFlag[data.code + data.timeRQ + data.timeSJ] = true
         }).catch(function (err) {
           console.log('失败 ', code + '-->');
         })
@@ -59,17 +64,15 @@ function boll(k_link) {
   }
   MA = MA / i1
   for (let k = 0; k < k_link.length; k++) {
-      if (k % 3 == 0) {
-        let item = k_link[k];
-        if (k < k_link.length - 1) {
-            sum += Math.pow(Number(item) - MA, 2);
-            k1++
-        }
-        if (k > 0) {
-            mean += Number(item)
-            k2++
-        }
-      }
+    let item = k_link[k];
+    if (k < k_link.length - 1) {
+        sum += Math.pow(Number(item) - MA, 2);
+        k1++
+    }
+    if (k > 0) {
+        mean += Number(item)
+        k2++
+    }
   }
   MD = Math.sqrt(sum / k1);
   MB = mean / k2;
@@ -84,4 +87,15 @@ function boll(k_link) {
       DN: DN // 下线
   };
   return obj
+}
+// 格式化时间
+function formatTime (date) {
+  let time = new Date(date)
+  let H = time.getHours();
+  H = H < 10 ? '0' + H : H;
+  let M = time.getMinutes();
+  M = M < 10 ? '0' + M : M;
+  let S = time.getSeconds();
+  S = S < 10 ? ('0' + S) : S;
+  return H + ':' + M + ':' + S;
 }

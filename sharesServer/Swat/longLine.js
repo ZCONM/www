@@ -56,13 +56,13 @@ module.exports = function (code, flag, $) {
         if (Number(temp4) > 0 && !$.timeSJ[code + temp7 + temp8]) {
           $.timeSJ[code + temp7 + temp8] = true
           $.https.post('http://127.0.0.1:9999/HamstrerServlet/stockAll/add', str).then(function (message) {
-              console.log(code + ':存储最新价格' + nub.toFixed(2) + '!');
+            //   console.log(code + ':存储最新价格' + nub.toFixed(2) + '!');
           }).catch(function (err) {
               console.log(err);
           });
         }
         if (!statusFlag($.codeData[code]['K-Lin'])) {
-            console.log('检测行情为跌势暂停交易')
+            console.log(code + '检测行情为跌势暂停交易')
             if (!flagCode[code]) {
                 let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
                 emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:清仓', nubMon);
@@ -74,7 +74,7 @@ module.exports = function (code, flag, $) {
         Number(temp4) > 0 && flag && calculatingData(code, temp1);
     });
     function calculatingData(code, name) {
-      console.log(code + ':分析价格!');
+    //   console.log(code + ':分析价格!');
       if ($.Sday[code].length > 0) {
           let lengths = $.Sday[code].length - 1;
           let mean = $.Sday[code].sum();
@@ -89,10 +89,10 @@ module.exports = function (code, flag, $) {
           minSum += item.mean - mean
           let isMax = (((max.max - mean) * 0.9) + mean) > (max.max - $.maxValue[code]) ? (((max.max - mean) * 0.9) + mean) : (max.max - $.maxValue[code]);
           let isMin = (mean - ((mean - min.min) * 0.9)) < (min.min + $.minValue[code]) ? (mean - ((mean - min.min) * 0.9)) : (min.min + $.minValue[code]);
-          console.log('isMax-all', (((max.max - mean) * 0.9) + mean), (max.max - $.maxValue[code]), isMax);
-          console.log('isMin-all', (mean - ((mean - min.min) * 0.9)), (min.min + $.minValue[code]), isMin);
-          console.log('max：', newest > maxSum, $.Sday[code].max().nub == $.Sday[code].length - 1, 'min:', newest < item.minData.sum(), $.Sday[code].min().nub == $.Sday[code].length - 1);
-          console.log('length:', lengths)
+        //   console.log('isMax-all', (((max.max - mean) * 0.9) + mean), (max.max - $.maxValue[code]), isMax);
+        //   console.log('isMin-all', (mean - ((mean - min.min) * 0.9)), (min.min + $.minValue[code]), isMin);
+        //   console.log('max：', newest > maxSum, $.Sday[code].max().nub == $.Sday[code].length - 1, 'min:', newest < item.minData.sum(), $.Sday[code].min().nub == $.Sday[code].length - 1);
+        //   console.log('length:', lengths)
           $.maxCurr[code].arr[0] || ($.maxCurr[code].arr[0] = maxSum)
           $.minCurr[code].arr[0] || ($.minCurr[code].arr[0] = minSum)
           let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
@@ -153,7 +153,7 @@ function emailGet(to, tit, text) {
 // 检测行情
 function statusFlag (k_lin) {
  if (!k_lin[1]) return true
- console.log('statusFlag', k_lin[0].boll.MB, k_lin[1].boll.MB)
+//  console.log('statusFlag', k_lin[0].boll.MB, k_lin[1].boll.MB)
  return k_lin[0] && k_lin[1] && (k_lin[0].boll.MB - k_lin[1].boll.MB >= 0)
 }
 
