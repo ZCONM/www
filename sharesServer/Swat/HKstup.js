@@ -1,7 +1,7 @@
 let email = require('../getemail');
 // let indexNum = 0
-module.exports = function (code, flag, $) {
-  console.log('HKstup', code, flag)
+module.exports = function (code, flag, $, itemIndex) {
+  // console.log('HKstup', code, flag)
   $.https.get('http://hq.sinajs.cn/list=' + 'rt_' + code).then(res => {
         let data = res.data.split('=')[1].split('"').join('').split(';').join('').split(',');
         let [
@@ -23,7 +23,6 @@ module.exports = function (code, flag, $) {
         data[17],
         data[18]
         ]
-        console.log('HKstup '+code+' ->', flag, Number(temp4))  
         if (Number(temp4) == 0) {
             return
         }
@@ -37,7 +36,7 @@ module.exports = function (code, flag, $) {
             'timeSJ': temp8
         };
         $.timeRQ = temp7;
-        calculatingData(code, temp1)
+        // calculatingData(code, temp1)
         if (Number(temp4) > 0 && !$.timeSJ[code + temp7 + temp8]) {
           $.timeSJ[code + temp7 + temp8] = true
           $.https.post('http://127.0.0.1:9999/HamstrerServlet/stockAll/add', str).then(function (message) {
@@ -55,8 +54,13 @@ module.exports = function (code, flag, $) {
         }
     });
     function calculatingData(code, name) {
-      console.log(code + ':分析价格!');
+      // console.log(code + ':分析价格!');
 // --------------------------------------------------------
+      // if (itemData.max().nub == itemData.length) {
+      //   $.deal[code].status = true
+      // } else if (itemData.min().nub == itemData.length) {
+      //   $.deal[code].status = false
+      // }
       let data = {
         stor: { timeRQ: -1, timeSJ: -1 },
         data: {
@@ -67,13 +71,12 @@ module.exports = function (code, flag, $) {
       $.https
       .post('http://127.0.0.1:9999/HamstrerServlet/stockAll/find', data)
       .then(d => {
-        $.codeData[code].status == 3 && _MACD(d)
+        _MACD(d)
         // if ($.codeData[code].status == 3) {
         //   d.data = d.data.slice(350 - indexNum, d.length)
         //   indexNum++
         //   _MACD(d)
         // }
-        $.codeData[code].status == 4 && _BOLL(d)
       })
       // macd分析价格
       function _MACD (d) {
@@ -87,79 +90,52 @@ module.exports = function (code, flag, $) {
             list.push(MACD(arr, 12, i - 24))
           }
         })
-        console.log('list[0].M', list[0].M, indexNum)
         // 开始分析
         if (list.length > 1) {
+          let itemData = $.Sday[code] || []
+          if (itemIndex != 0) {
+            if (itemData[itemData.length-1] > itemData.sum()) {
+              let EPS = (itemData.sum() - itemData[0]) / itemData[0]
+              if (EPS > ($.EPS || 0)) {
+                $.EPS = EPS
+                [$.codeIDarr3[0], $.codeIDarr3[itemIndex]] = [$.codeIDarr3[itemIndex], $.codeIDarr3[0]]
+              }
+            }
+          } else {
+            let EPS = (itemData[itemData.length-1] - itemData[0]) / itemData[0]
+            $.codeIDarr3[0].codeID == code && ($.EPS = EPS)
+          }
           let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
-          if (!$.deal[code].info) { // 空仓
-            console.log('空仓', list[0].M1, list[0].M2, list[0].M)
-            if (list[0].M1 < list[0].M2 && (list[0].M - list[0].M2) > 0) {
+          if (!$.deal[code].info && $.codeIDarr3[0].codeID == code) { // 空仓
+            console.log(code + '空仓', list[0].M1.toFixed(2), list[0].M2.toFixed(2), list[0].M.toFixed(2), $.EPS, $.HKflag)
+            if (((list[0].M1 < list[0].M2 && (list[0].M - list[0].M2) > 0) || (list[0].M > list[0].M1 && list[0].M1 > list[0].M2)) && !$.HKflag) {
               emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:全仓', '当前价：' + list[0].M + nubMon);
               let bottom = []
-              for (let i = 0; i < list.length && list[i].M1 < list[i].M2; i++) {
+              for (let i = 0; i < list.length && (list[i].M1 < list[i].M2 || i < 5); i++) {
                 bottom.push(list[i].M)
               }
+              $.deal[code].up++
               $.deal[code].info = {
                 M: list[0].M,
-                bottom: bottom.min().min,
-                flag: false
+                bottom: bottom.min().min
               }
+              $.HKflag = true
             }
-          } else { // 满仓
-            console.log('满仓', list[0].M1.toFixed(2), list[0].M2.toFixed(2), list[0].M.toFixed(2), $.deal[code].info.flag)
+          } else if ($.deal[code].info) { // 满仓
+            console.log(code + '满仓', list[0].M1.toFixed(2), list[0].M2.toFixed(2), list[0].M.toFixed(2),$.deal[code].info.bottom.toFixed(2))
             if (list[0].M - $.deal[code].info.bottom >= 0) {
               if ((list[0].M - $.deal[code].info.M) / $.deal[code].info.M > 0.005) {
-                if (list[0].M < list[0].M1) {
+                if (list[0].M < list[0].M1 && list[1].M < list[1].M1) {
                   emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:清仓', '当前价：' + list[0].M + nubMon);
                   $.deal[code].info = null
+                  $.HKflag = false
                 }
               }
-            } else if ($.deal[code].info.M - $.deal[code].bottom < $.deal[code].bottom - list[0].M) { // 破最低清仓
-              if ($.deal[code].info.flag) {
-                emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:清仓', '当前价：' + list[0].M + nubMon);
-                $.deal[code].info = null
-              } else {
-                $.deal[code].info.flag = true
-              }
-            }
-          }
-        }
-      }
-      // BOll分析
-      function _BOLL (d) {
-        let boll = {}
-        let list = []
-        boll.SJ = []
-        boll.JS = []
-        boll.MB = []
-        boll.UP = []
-        boll.DN = []
-        let arr = []
-        d.data.forEach((item, i) => {
-          arr.push(item.dangqianjiage)
-        })
-        d.data.forEach((item, i) => {
-          if (i >= 20) {
-            list.push({
-              timeSJ: d.data[i - 20].timeSJ,
-              js: d.data[i - 20].dangqianjiage,
-              boll: bolls(arr, i - 20)
-            })
-          }
-        })
-        // 开始分析
-        if (list.length > 1) {
-          let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
-          if ($.deal[code].info) { // 是否已买入
-            if (list[0].js >= list[0].boll.UP || list[0].js < $.deal[code].info.bottom) { // 突破boll线上线
-              emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:清仓', '当前价：' + $.Sday[code][$.Sday[code].length - 1].toFixed(2) + nubMon);
+            } else if (list[0].M - $.deal[code].info.bottom < 0 && list[1].M - $.deal[code].info.bottom < 0) { // 破最低清仓
+              emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:清仓', '当前价：' + list[0].M + nubMon);
               $.deal[code].info = null
-            }
-          } else if (list[0].js <= list[0].boll.DN) { // 破下行线
-            emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:全仓', '当前价：' + $.Sday[code][$.Sday[code].length - 1].toFixed(2) + nubMon);
-            $.deal[code].info = {
-              M: list[0].M,
-              bottom: list[0].M
+              $.deal[code].dow++
+              $.HKflag = false
             }
           }
         }

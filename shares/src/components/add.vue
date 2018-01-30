@@ -106,7 +106,6 @@
                   </template>
                   <template v-else>
                     <el-radio :label="3">MACD</el-radio>
-                    <el-radio :label="4">BOLL</el-radio>
                   </template>
                 </el-radio-group>
               </template>

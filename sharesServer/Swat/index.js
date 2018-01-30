@@ -45,7 +45,7 @@ $.schedule.scheduleJob('0 55 8 * * 1-5', function () {
     $.maxCurr = {}; // 上压值
     $.minCurr = {}; // 下压值
     $.MaxNumber = []; // 未使用
-    $.deal = {}; // 当天买卖次数（未使用）
+    $.deal = {}; // 当天买卖次数
 });
 function loading() {
     if ($.timeRQ == setTime()) return
@@ -67,9 +67,9 @@ function loading() {
             // if (item.codeID == 'sz300263') debugger
             $.codeData[item.codeID] = item;
             if (item.status > 0) {
-                $.deal[item.codeID] = { up: 0, dow: 0, info: null}
+                $.deal[item.codeID] = { up: 0, dow: 0, status: true, info: null}
                 if (item.codeID.indexOf('hk') !== -1) {
-                    arr3.push(item)
+                    item.status == 3 && arr3.push(item)
                 } else {
                     item.status == 1 && arr1.push(item)
                     item.status == 2 && arr2.push(item)
@@ -110,7 +110,7 @@ function gainCode() {
         for (let i = 0; i < $.codeIDarr3.length; i++) {
             let item = $.codeIDarr3[i];
             console.log("解析股票代码香港：", item.codeID)
-            HKstup(item.codeID, !!item.max, $);
+            HKstup(item.codeID, true, $, i);
         }
     }
 }
