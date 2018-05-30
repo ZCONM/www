@@ -61,8 +61,8 @@ module.exports = function (code, flag, $) {
               console.log(err);
           });
         }
-        if (!statusFlag($.codeData[code]['K-Lin'])) {
-            console.log(code + '检测行情为跌势暂停交易')
+        if ((Number(temp4) - Number(temp3)) / Number(temp3) < -0.02) { // !statusFlag($.codeData[code]['K-Lin'])
+            console.log(code + '检测行情跌势超2%暂停交易', temp4, temp3, (Number(temp4) - Number(temp3)) / Number(temp3));
             if (!flagCode[code]) {
                 let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
                 emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:清仓', nubMon);
@@ -91,7 +91,7 @@ module.exports = function (code, flag, $) {
           let isMin = (mean - ((mean - min.min) * 0.9)) < (min.min + $.minValue[code]) ? (mean - ((mean - min.min) * 0.9)) : (min.min + $.minValue[code]);
         //   console.log('isMax-all', (((max.max - mean) * 0.9) + mean), (max.max - $.maxValue[code]), isMax);
         //   console.log('isMin-all', (mean - ((mean - min.min) * 0.9)), (min.min + $.minValue[code]), isMin);
-        //   console.log('max：', newest > maxSum, $.Sday[code].max().nub == $.Sday[code].length - 1, 'min:', newest < item.minData.sum(), $.Sday[code].min().nub == $.Sday[code].length - 1);
+          console.log('max：', newest > maxSum, $.Sday[code].max().nub == $.Sday[code].length - 1, 'min:', newest < item.minData.sum(), $.Sday[code].min().nub == $.Sday[code].length - 1);
         //   console.log('length:', lengths)
           $.maxCurr[code].arr[0] || ($.maxCurr[code].arr[0] = maxSum)
           $.minCurr[code].arr[0] || ($.minCurr[code].arr[0] = minSum)
@@ -111,12 +111,12 @@ module.exports = function (code, flag, $) {
               }
           } else if (newest < minSum) {
               if (min.nub == lengths && $.soaringMin[code] == 0 && min.min < ($.minCurr[code].arr[$.minCurr[code].arr.length - 1] - $.minCurr[code].nub)) {
-                  emailGet(toEmail, $.codeData[code].name + '[' + code + ']:今日下降中', '当前价：' + $.Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最低：' + min.min.toFixed(2) + ';下行：' + minSum.toFixed(2) + ';下压：' + $.minCurr[code].nub);
+                //   emailGet(toEmail, $.codeData[code].name + '[' + code + ']:今日下降中', '当前价：' + $.Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最低：' + min.min.toFixed(2) + ';下行：' + minSum.toFixed(2) + ';下压：' + $.minCurr[code].nub);
                   $.soaringMin[code] = 1;
                   $.maxCurr[code].nub = 0
               } else if ($.soaringMin[code] == 1 && newest > (isMin > min.min + 0.03 ? isMin : min.min + 0.03)) {
                   $.deal[item.codeID] && $.deal[item.codeID].dow++
-                  emailGet(toEmail, $.codeData[code].name + '[' + code + ']:回升中', '当前价：' + $.Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最低：' + min.min.toFixed(2) + ';下行：' + minSum.toFixed(2) + nubMon);
+                //   emailGet(toEmail, $.codeData[code].name + '[' + code + ']:回升中', '当前价：' + $.Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最低：' + min.min.toFixed(2) + ';下行：' + minSum.toFixed(2) + nubMon);
                   $.soaringMin[code] = 0;
                   $.minCurr[code].nub = $.minCurr[code].nub + mathNumber($.minCurr[code].nub);
                   $.minCurr[code].arr.push(max.max)
@@ -153,8 +153,8 @@ function emailGet(to, tit, text) {
 // 检测行情
 function statusFlag (k_lin) {
  if (!k_lin[1]) return true
-//  console.log('statusFlag', k_lin[0].boll.MB, k_lin[1].boll.MB)
- return k_lin[0] && k_lin[1] && (k_lin[0].boll.MB - k_lin[1].boll.MB >= 0)
+ console.log('statusFlag', k_lin[0].boll.MB, k_lin[1].boll.MB)
+ return k_lin[0] && k_lin[1] && (k_lin[0].boll.MB - k_lin[1].boll.MB <= 0)
 }
 
 module.exports.endEmail = function ($) {
@@ -162,7 +162,7 @@ module.exports.endEmail = function ($) {
         if ($.codeIDarr1[item].codeID) {
             let code = $.codeIDarr1[item].codeID;
             let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
-            let toEmail = code == 'sh600335' ? '423642318@qq.com' : '851726398@qq.com'
+            let toEmail = '851726398@qq.com';
             if ($.soaringMax[code] == 1) {
                 $.deal[code] && $.deal[code].up++
                 emailGet(toEmail, $.codeData[code].name + '[' + code + ']:回降中', '当前价：' + $.Sday[code][$.Sday[code].length - 1].toFixed(2) + nubMon);

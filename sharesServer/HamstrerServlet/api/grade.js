@@ -127,7 +127,8 @@ function getHtml(index, len){
           temp5, // 最高价
           temp6, // 最低价
           temp7, // 日期
-          temp8 // 时间
+          temp8, // 时间
+          volume
         ] = item.codeID.indexOf('hk') === -1 ? [
           data[0],
           data[1],
@@ -136,7 +137,8 @@ function getHtml(index, len){
           data[4],
           data[5],
           data[30],
-          data[31]
+          data[31],
+          data[8]
         ] : [
           data[1],
           data[2],
@@ -145,9 +147,10 @@ function getHtml(index, len){
           data[4],
           data[5],
           data[17],
-          data[18]
+          data[18],
+          data[8]
         ]
-        if (Number(temp4) == 0) {
+        if (Number(temp4) == 0 || (Number(temp4) - Number(temp3)) / Number(temp3) > 0.05) {
             getHtml(index + 1, len)
             return;
         }
@@ -160,6 +163,7 @@ function getHtml(index, len){
             'boll': null,
             'ks': Number(temp2),
             'js': Number(temp4),
+            'volume': Number(volume),
             'deal': null,
             'timeRQ': temp7,
             'status': Number(temp4) - Number(temp2)
@@ -203,10 +207,15 @@ function scoreNumber(k_link, code) {
                     } else {
                         return
                     }
+                    let arr = (k_link || []).filter(item => !!item.js).map(item => item.js);
+                    if (arr.max().nub == arr.length) return;
                     if (k_link[curr].boll.MB - k_link[curr+1].boll.MB < 0 || k_link[curr].js - k_link[curr+1].js < 0) {
                         return
                     }
                     score.numner = score.numner + ((k_link[curr].boll.MB - k_link[curr].js) * 2)
+                    if (k_link[curr].volume && k_link[curr+1].volume && k_link[curr+1].volume > k_link[curr].volume && k_link[curr].status > 0) {
+                        score.numner = (k_link[curr].volume / k_link[curr+1].volume) * 10
+                    }
                 } else if (k_link[curr].boll.MB - k_link[curr+1].boll.MB < 0) {
                     score.status++
                 }

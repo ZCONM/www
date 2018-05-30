@@ -36,7 +36,8 @@ module.exports = function ($) {
         temp5, // 最高价
         temp6, // 最低价
         temp7, // 日期
-        temp8 // 时间
+        temp8, // 时间
+        volume // 量
         ] = item.codeID.substring(0,2) !== 'hk' ? [
         data[0],
         data[1],
@@ -45,7 +46,8 @@ module.exports = function ($) {
         data[4],
         data[5],
         data[30],
-        data[31]
+        data[31],
+        data[8]
         ] : [
         data[1],
         data[2],
@@ -54,7 +56,8 @@ module.exports = function ($) {
         data[4],
         data[5],
         data[17],
-        data[18]
+        data[18],
+        data[8]
         ]
         if (Number(temp4) == 0) {
             current++
@@ -71,6 +74,7 @@ module.exports = function ($) {
             'boll': null,
             'ks': Number(temp2),
             'js': Number(temp4),
+            'volume': Number(volume),
             'deal': $.deal[item.codeID] || null,
             'timeRQ': temp7,
             'status': Number(temp4) - Number(temp2)
