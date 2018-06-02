@@ -118,14 +118,14 @@ function gainCode() {
 $.schedule.scheduleJob('5 45 14 * * 1-5', function () {
     console.log('发送最新股票评分');
     $.https.get('http://127.0.0.1:9999/HamstrerServlet/api/grade?type=1')
-    for (let i = 0; i < $.codeIDarr1.length; i++) {
-        let item = $.codeIDarr1[i];
-        longLine.endEmail($);
-    }
-    for (let i = 0; i < $.codeIDarr2.length; i++) {
-        let item = $.codeIDarr2[i];
-        stup.endEmail($);
-    }
+    // for (let i = 0; i < $.codeIDarr1.length; i++) {
+    //     let item = $.codeIDarr1[i];
+    // }
+    $.codeIDarr1.length && longLine.endEmail($);
+    // for (let i = 0; i < $.codeIDarr2.length; i++) {
+    //     let item = $.codeIDarr2[i];
+    // }
+    $.codeIDarr2.length && stup.endEmail($);
 });
 // 执行任务收集信息
 // setBOX($)

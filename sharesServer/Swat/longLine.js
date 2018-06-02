@@ -61,10 +61,10 @@ module.exports = function (code, flag, $) {
               console.log(err);
           });
         }
-        if ((Number(temp4) - Number(temp3)) / Number(temp3) < -0.02) { // !statusFlag($.codeData[code]['K-Lin'])
-            console.log(code + '检测行情跌势超2%暂停交易', temp4, temp3, (Number(temp4) - Number(temp3)) / Number(temp3));
+        if ((Number(temp4) - Number(temp3)) / Number(temp3) < -0.04) { // !statusFlag($.codeData[code]['K-Lin'])
+            console.log(code + '检测行情跌势超4%暂停交易', temp4, temp3, (Number(temp4) - Number(temp3)) / Number(temp3));
             if (!flagCode[code]) {
-                let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
+                let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span><p>检测行情跌势超4%</p>';
                 emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:清仓', nubMon);
                 flagCode[code] = true
             }
@@ -163,16 +163,18 @@ module.exports.endEmail = function ($) {
             let code = $.codeIDarr1[item].codeID;
             let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
             let toEmail = '851726398@qq.com';
-            if ($.soaringMax[code] == 1) {
-                $.deal[code] && $.deal[code].up++
-                emailGet(toEmail, $.codeData[code].name + '[' + code + ']:回降中', '当前价：' + $.Sday[code][$.Sday[code].length - 1].toFixed(2) + nubMon);
-                $.soaringMax[code] = 0;
-            }
-            if ($.soaringMin[code] == 1) {
-                $.deal[code] && $.deal[code].dow++
-                emailGet(toEmail, $.codeData[code].name + '[' + code + ']:回升中', '当前价：' + $.Sday[code][$.Sday[code].length - 1].toFixed(2) + nubMon);
-                $.soaringMin[code] = 0;
-            }
+            // if ($.soaringMax[code] == 1) {
+            //     $.deal[code] && $.deal[code].up++
+            //     emailGet(toEmail, $.codeData[code].name + '[' + code + ']:回降中', '当前价：' + $.Sday[code][$.Sday[code].length - 1].toFixed(2) + nubMon);
+            //     $.soaringMax[code] = 0;
+            // }
+            // if ($.soaringMin[code] == 1) {
+            //     $.deal[code] && $.deal[code].dow++
+            //     emailGet(toEmail, $.codeData[code].name + '[' + code + ']:回升中', '当前价：' + $.Sday[code][$.Sday[code].length - 1].toFixed(2) + nubMon);
+            //     $.soaringMin[code] = 0;
+            // }
+            emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:清仓', nubMon);
+            $.https.post('http://localhost:8089/api/HamstrerServlet/stock/edit',{"where":{"codeID":code},"setter":{"status":0}});
         }
     }
 }

@@ -82,10 +82,11 @@ let fileArr = [];
 let serverUrl = '';
 let curr = 0;
 let MaxNumber = [];
-axios.get('http://127.0.0.1:9999/HamstrerServlet/stock/find').then(function(d) {
-    d.data && (fileArr = d.data)
-    getHtml(0, fileArr.length)
-    res.send('稍后会发送邮件给您！');
+axios.post('http://127.0.0.1:9999/HamstrerServlet/stock/find', {"codeID":"sz300062"}).then(function(d) {
+    d.data && (fileArr = d.data);
+    console.log('sss', d.data.length);
+    getHtml(0, fileArr.length);
+    res && res.send('稍后会发送邮件给您！');
 })
 function getHtml(index, len){
     console.log('indexKS', index, len)
@@ -94,16 +95,15 @@ function getHtml(index, len){
         let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
         console.log('data.type', !!data.type)
         !!data.type && setTimeout(() => {
-            console.log('全仓')
-            emailGet('851726398@qq.com', '[' + code + ']:全仓', nubMon);
-            console.log('修改状态')
-            axios.post('/api/HamstrerServlet/stock/edit', {where: {codeID: code}, setter: {status: 2}}).then(res => {
-              console.log('edit', res)
+            axios.post('http://localhost:8089/api/HamstrerServlet/stock/edit',{"where":{"codeID":code},"setter":{"status":1}}).then(res=>{
+              console.log('修改状态成功')
             }).catch((err) => {
               console.log('edit', err)
             })
         }, 1000 * 60 * (58 - (new Date()).getMinutes()))
         emailGet('851726398@qq.com,423642318@qq.com', '股票评分', MaxNumber.srotGrade())
+        console.log('全仓')
+        emailGet('851726398@qq.com', '[' + code + ']:全仓', nubMon);
         // console.log(MaxNumber)
         return
     }
@@ -182,7 +182,7 @@ function getHtml(index, len){
     });
 }
 function scoreNumber(k_link, code) {
-    // if (code == 'sh600215') debugger
+    // if (code == 'sh300062') debugger
     if (!(code[2] == 6 || code[2] == 3)) return
     let score = {status:0, numner:0};
     if (k_link.length > 2) {
@@ -207,11 +207,15 @@ function scoreNumber(k_link, code) {
                     } else {
                         return
                     }
+                    console.log(1111111)
                     let arr = (k_link || []).filter(item => !!item.js).map(item => item.js);
+                    console.log(2111111)
                     if (arr.max().nub == arr.length) return;
-                    if (k_link[curr].boll.MB - k_link[curr+1].boll.MB < 0 || k_link[curr].js - k_link[curr+1].js < 0) {
+                    console.log(3111111)
+                    if (k_link[curr].boll.MB - k_link[curr+1].boll.MB < 0 || k_link[curr].status > 0) {
                         return
                     }
+                    console.log(4111111)
                     score.numner = score.numner + ((k_link[curr].boll.MB - k_link[curr].js) * 2)
                     if (k_link[curr].volume && k_link[curr+1].volume && k_link[curr+1].volume > k_link[curr].volume && k_link[curr].status > 0) {
                         score.numner = (k_link[curr].volume / k_link[curr+1].volume) * 10
