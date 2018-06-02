@@ -76,24 +76,32 @@ function setTime() {
     d = d < 10 ? ('0' + d) : d;
     return y + '-' + m + '-' + d;
 }
+// 封装consoles，方便切换测试模式
+let consoles = {
+    log: function (...val) {
+        if (test) console.log(...val);
+    }
+}
 // -------------------------------------------------------------------------------------------
-// let axios = require('axios')
+let test = false; // 是否展示测试console
 let fileArr = [];
 let serverUrl = '';
 let curr = 0;
 let MaxNumber = [];
-axios.post('http://127.0.0.1:9999/HamstrerServlet/stock/find', {"codeID":"sz300062"}).then(function(d) {
+// axios.post('http://127.0.0.1:9999/HamstrerServlet/stock/find', {"codeID":"sz002321"}).then(function(d) {
+axios.post('http://127.0.0.1:9999/HamstrerServlet/stock/find').then(function(d) {
     d.data && (fileArr = d.data);
-    console.log('sss', d.data.length);
     getHtml(0, fileArr.length);
-    res && res.send('稍后会发送邮件给您！');
+    res.send('稍后会发送邮件给您！');
 })
 function getHtml(index, len){
-    console.log('indexKS', index, len)
+    console.log('indexKS', index, len);
     if (index == len) {
-        let code = MaxNumber[MaxNumber.length - 1][0].code
+        consoles.log(1, MaxNumber);
+        let code = MaxNumber[MaxNumber.length - 1][0].code;
+        consoles.log(2);
         let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
-        console.log('data.type', !!data.type)
+        consoles.log('data.type', !!data.type)
         !!data.type && setTimeout(() => {
             axios.post('http://localhost:8089/api/HamstrerServlet/stock/edit',{"where":{"codeID":code},"setter":{"status":1}}).then(res=>{
               console.log('修改状态成功')
@@ -102,22 +110,23 @@ function getHtml(index, len){
             })
         }, 1000 * 60 * (58 - (new Date()).getMinutes()))
         emailGet('851726398@qq.com,423642318@qq.com', '股票评分', MaxNumber.srotGrade())
-        console.log('全仓')
+        console.log('发送全仓邮件');
         emailGet('851726398@qq.com', '[' + code + ']:全仓', nubMon);
-        // console.log(MaxNumber)
         return
     }
     if (!(fileArr[index] && fileArr[index]['K-Lin'])) {
         if (index < (len - 1)) {
             getHtml(index + 1, len)
         }
-        return
+        return consoles.log('not K-Lin');
     }
     let item = fileArr[index];
+    consoles.log('请求新浪api');
     axios.get('http://hq.sinajs.cn/list=' + (item.codeID.indexOf('hk') === -1 ? item.codeID : 'rt_' + item.codeID), {
         'responseType': 'text/plain;charset=utf-8',
         'header': 'text/plain;charset=utf-8'
     }).then(function (res) {
+        consoles.log('res 请求新浪api', res.data);
         let data = res.data.split('=')[1].split('"').join('').split(';').join('').split(',');
         let [
           temp1, // 股票名称
@@ -151,7 +160,8 @@ function getHtml(index, len){
           data[8]
         ]
         if (Number(temp4) == 0 || (Number(temp4) - Number(temp3)) / Number(temp3) > 0.05) {
-            getHtml(index + 1, len)
+            consoles.log('max 5%');
+            getHtml(index + 1, len);
             return;
         }
         let timeRQ = temp7;
@@ -168,7 +178,9 @@ function getHtml(index, len){
             'timeRQ': temp7,
             'status': Number(temp4) - Number(temp2)
         }
+        consoles.log('开始boll计算');
         o.boll = boll(item['K-Lin'], o);
+        consoles.log('开始boll计算结束');
         item['K-Lin'][0] && item['K-Lin'][0].timeRQ != o.timeRQ && (k_link = [o]);
         if (item['K-Lin']) {
             for (let k = 0; k < item['K-Lin'].length && k < 20; k++) {
@@ -177,48 +189,50 @@ function getHtml(index, len){
                 }
             }
         }
+        consoles.log('开始scoreNumber计算分数');
         scoreNumber(k_link, item.codeID)
         getHtml(index + 1, len)
     });
 }
 function scoreNumber(k_link, code) {
+    consoles.log('scoreNumber');    
     // if (code == 'sh300062') debugger
-    if (!(code[2] == 6 || code[2] == 3)) return
+    if (!(code[2] == 6 || code[2] == 3 || code[2] == 0) || code[0] != 's') return;
     let score = {status:0, numner:0};
+    // k_link.splice(0,1); // 测试代码去掉 n 数据
     if (k_link.length > 2) {
-        scoreFun(0, k_link.length, k_link)
-        score.numner += BF(k_link) // 反转趋势
+        scoreFun(0, k_link.length, k_link);
+        consoles.log('scoreFun',code, score);
+        score.numner += BF(k_link); // 反转趋势
+        consoles.log('BF',code, score);
         let name = parseInt(score.numner);
-        if (name > 0) {
-            if (!MaxNumber[name]) MaxNumber[name] = []
-            MaxNumber[name].push({code: code, nub: score.numner})
+        if (name >= 0) {
+            if (!MaxNumber[name]) MaxNumber[name] = [];
+            MaxNumber[name].push({code: code, nub: score.numner});
         }
     }
     function scoreFun (curr, len, k_link) {
         if (curr < len - 1 && k_link[curr].boll && k_link[curr + 1].boll) {
             if (curr < 2 && score.status == 0) {
                 if (curr == 0) {
-                    if (k_link[curr].boll.MB > 10 && k_link[curr].boll.MB < 30) {
-                        // score.numner = score.numner + (40 - k_link[curr].boll.MB) / 2
-                        // if (code == 'sh600215') console.log('1', score.numner)
-                    } else if (k_link[curr].boll.MB > 5 && k_link[curr].boll.MB < 10) {
-                        // score.numner = score.numner + k_link[curr].boll.MB / 2
-                        // if (code == 'sh600215') console.log('2', score.numner)
-                    } else {
-                        return
-                    }
-                    console.log(1111111)
+                    // if (k_link[curr].boll.MB > 10 && k_link[curr].boll.MB < 30) {
+                    //     // score.numner = score.numner + (40 - k_link[curr].boll.MB) / 2
+                    //     // if (code == 'sh600215') consoles.log('1', score.numner)
+                    // } else if (k_link[curr].boll.MB > 5 && k_link[curr].boll.MB < 10) {
+                    //     // score.numner = score.numner + k_link[curr].boll.MB / 2
+                    //     // if (code == 'sh600215') consoles.log('2', score.numner)
+                    // } else {
+                    //     return
+                    // }
                     let arr = (k_link || []).filter(item => !!item.js).map(item => item.js);
-                    console.log(2111111)
                     if (arr.max().nub == arr.length) return;
-                    console.log(3111111)
-                    if (k_link[curr].boll.MB - k_link[curr+1].boll.MB < 0 || k_link[curr].status > 0) {
+                    if (k_link[curr].boll.MB - k_link[curr+1].boll.MB < 0 || k_link[curr].status < 0) {
                         return
                     }
-                    console.log(4111111)
-                    score.numner = score.numner + ((k_link[curr].boll.MB - k_link[curr].js) * 2)
+                    // score.numner = score.numner + ((k_link[curr].boll.MB - k_link[curr].js) * 2);
                     if (k_link[curr].volume && k_link[curr+1].volume && k_link[curr+1].volume > k_link[curr].volume && k_link[curr].status > 0) {
-                        score.numner = (k_link[curr].volume / k_link[curr+1].volume) * 10
+                        score.numner += (k_link[curr].volume / k_link[curr+1].volume) * 10;
+                        score.numner += k_link[curr].volume > 1000000 ? 1 : 0;
                     }
                 } else if (k_link[curr].boll.MB - k_link[curr+1].boll.MB < 0) {
                     score.status++
@@ -229,7 +243,7 @@ function scoreNumber(k_link, code) {
                         score.numner += k_link[curr].boll.MD / k_link[curr+1].boll.MD
                     }
                 }
-                
+                consoles.log(code, curr, score.numner);
                 scoreFun(curr+1, len, k_link)
             } else if (score.status == 1) {
                 if (k_link[curr].boll.MB - k_link[curr+1].boll.MB < 0) {
@@ -237,13 +251,15 @@ function scoreNumber(k_link, code) {
                     if (k_link[curr].boll.MD - k_link[curr+1].boll.MD < 0) {
                         score.numner += k_link[curr+1].boll.MD / k_link[curr].boll.MD
                     }
-                    // if (code == 'sh600215') console.log('dow', score.numner)
+                    // if (code == 'sh600215') consoles.log('dow', score.numner)
                 } else {
                     score.status++
                 }
+                consoles.log(code, curr, score.numner);                
                 scoreFun(curr+1, len, k_link)
             } else if (curr > 2 && score.status == 3) {
                 score.numner += k_link[curr].boll.MB / k_link[1].boll.MB
+                consoles.log(code, curr, score.numner);                
                 return
             } else {
                 return
@@ -320,10 +336,10 @@ function BF(k_link) {
 function emailGet(to, tit, text) {
     email.send(to, tit, text, function (err, info) {
         if (err) {
-            console.log(err);
+            consoles.log(err);
             return;
         }
-        console.log('邮件:', tit);
+        consoles.log('邮件:', tit);
     })
   }
 
