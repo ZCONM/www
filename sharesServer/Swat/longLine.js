@@ -16,28 +16,29 @@ module.exports = function (code, flag, $) {
         temp7, // 日期
         temp8 // 时间
         ] = code.indexOf('hk') === -1 ? [
-        data[0],
-        data[1],
-        data[2],
-        data[3],
-        data[4],
-        data[5],
-        data[30],
-        data[31]
+        Number(data[0] || 0),
+        Number(data[1] || 0),
+        Number(data[2] || 0),
+        Number(data[3] || 0),
+        Number(data[4] || 0),
+        Number(data[5] || 0),
+        Number(data[30] || 0),
+        Number(data[31] || 0)
         ] : [
-        data[1],
-        data[2],
-        data[3],
-        data[6],
-        data[4],
-        data[5],
-        data[17],
-        data[18]
+        Number(data[1] || 0),
+        Number(data[2] || 0),
+        Number(data[3] || 0),
+        Number(data[6] || 0),
+        Number(data[4] || 0),
+        Number(data[5] || 0),
+        Number(data[17] || 0),
+        Number(data[18] || 0)
         ]
-        if (Number(temp4) == 0) {
+        if (temp4 == 0) {
             return
         }
-        let nub = Number(temp4);
+        if (!$.openVal[code]) $.openVal[code] = temp2;
+        let nub = temp4;
         if ($.Sday[code]) {
           $.Sday[code].push(nub);
         } else {
@@ -48,12 +49,12 @@ module.exports = function (code, flag, $) {
         let str = {
             'name': name,
             'daima': code,
-            'dangqianjiage': Number(temp4),
+            'dangqianjiage': temp4,
             'timeRQ': temp7,
             'timeSJ': temp8
         };
         $.timeRQ = temp7;
-        if (Number(temp4) > 0 && !$.timeSJ[code + temp7 + temp8]) {
+        if (temp4 > 0 && !$.timeSJ[code + temp7 + temp8]) {
           $.timeSJ[code + temp7 + temp8] = true
           $.https.post('http://127.0.0.1:9999/HamstrerServlet/stockAll/add', str).then(function (message) {
             //   console.log(code + ':存储最新价格' + nub.toFixed(2) + '!');
@@ -61,8 +62,9 @@ module.exports = function (code, flag, $) {
               console.log(err);
           });
         }
-        if ((Number(temp4) - Number(temp3)) / Number(temp3) < -0.04) { // !statusFlag($.codeData[code]['K-Lin'])
-            console.log(code + '检测行情跌势超4%暂停交易', temp4, temp3, (Number(temp4) - Number(temp3)) / Number(temp3));
+        let stop = $.Sday[code].max() / temp3 - 1;
+        if ((temp4 - temp3) / temp3 < -0.02 + stop) { // !statusFlag($.codeData[code]['K-Lin'])
+            console.log(code + '检测行情跌势超2%暂停交易', temp4, temp3, (temp4 - temp3) / temp3);
             if (!flagCode[code]) {
                 let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span><p>检测行情跌势超4%</p>';
                 emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:清仓', nubMon);
@@ -71,7 +73,7 @@ module.exports = function (code, flag, $) {
             return
         }
         flagCode[code] = false
-        Number(temp4) > 0 && flag && calculatingData(code, temp1);
+        temp4 > 0 && flag && calculatingData(code, temp1);
     });
     function calculatingData(code, name) {
     //   console.log(code + ':分析价格!');
@@ -81,20 +83,15 @@ module.exports = function (code, flag, $) {
           let newest = $.Sday[code][lengths];
           let max = $.Sday[code].max();
           let min = $.Sday[code].min();
-          let currDay = Number($.Sday[code][0]);
+          let currDay = $.Sday[code][0];
           let item = $.codeData[code];
-          let maxSum = item && item.maxData ? [item.maxData.max().max, item.maxData.min().min].sum() : 0;
-          maxSum += item.mean - mean
-          let minSum = item && item.minData ? [item.minData.max().max, item.minData.min().min].sum() : 0;
-          minSum += item.mean - mean
-          let isMax = (((max.max - mean) * 0.9) + mean) > (max.max - $.maxValue[code]) ? (((max.max - mean) * 0.9) + mean) : (max.max - $.maxValue[code]);
-          let isMin = (mean - ((mean - min.min) * 0.9)) < (min.min + $.minValue[code]) ? (mean - ((mean - min.min) * 0.9)) : (min.min + $.minValue[code]);
-        //   console.log('isMax-all', (((max.max - mean) * 0.9) + mean), (max.max - $.maxValue[code]), isMax);
-        //   console.log('isMin-all', (mean - ((mean - min.min) * 0.9)), (min.min + $.minValue[code]), isMin);
-          console.log('max：', newest > maxSum, $.Sday[code].max().nub == $.Sday[code].length - 1, 'min:', newest < item.minData.sum(), $.Sday[code].min().nub == $.Sday[code].length - 1);
-        //   console.log('length:', lengths)
-          $.maxCurr[code].arr[0] || ($.maxCurr[code].arr[0] = maxSum)
-          $.minCurr[code].arr[0] || ($.minCurr[code].arr[0] = minSum)
+          let maxSum = $.openVal[code] * 1.01;
+          let minSum = $.openVal[code] - $.openVal[code] * 0.01;
+          let isMax = $.openVal[code] * 0.003 < 0.03? 0.03 : $.openVal[code] * 0.003;
+          let isMin = $.openVal[code] * 0.003 < 0.03? 0.03 : $.openVal[code] * 0.003;
+          console.log(newest,maxSum,isMax,minSum, isMin, 'max：', newest > maxSum, $.Sday[code].max().nub == $.Sday[code].length - 1, 'min:', newest < isMin, $.Sday[code].min().nub == $.Sday[code].length - 1);
+          $.maxCurr[code].arr[0] || ($.maxCurr[code].arr[0] = maxSum);
+          $.minCurr[code].arr[0] || ($.minCurr[code].arr[0] = minSum);
           let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
           let toEmail = '851726398@qq.com'
           if (newest > maxSum) {
@@ -102,37 +99,35 @@ module.exports = function (code, flag, $) {
                   emailGet(toEmail, $.codeData[code].name + '[' + code + ']:今日飙升中', '当前价：' + $.Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2) + ';上行：' + maxSum.toFixed(2) + ';上压：' + $.maxCurr[code].nub);
                   $.soaringMax[code] = 1;
                   $.minCurr[code].nub = 0;
-              } else if ($.soaringMax[code] == 1 && newest < (isMax < max.max - 0.03 ? isMax : max.max - 0.03)) {
+              } else if ($.soaringMax[code] == 1 && newest < (max.max - isMax)) {
                   $.deal[item.codeID] && $.deal[item.codeID].up++
                   emailGet(toEmail, $.codeData[code].name + '[' + code + ']:回降中', '当前价：' + $.Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2) + ';上行：' + maxSum.toFixed(2) + nubMon);
                   $.soaringMax[code] = 0;
-                  $.maxCurr[code].nub = $.maxCurr[code].nub + mathNumber($.maxCurr[code].nub);
-                  $.maxCurr[code].arr.push(max.max)
+                  $.maxCurr[code].nub = $.maxCurr[code].nub + mathNumber($.maxCurr[code].arr.length);
+                  $.maxCurr[code].arr.push(max.max);
               }
           } else if (newest < minSum) {
               if (min.nub == lengths && $.soaringMin[code] == 0 && min.min < ($.minCurr[code].arr[$.minCurr[code].arr.length - 1] - $.minCurr[code].nub)) {
                 //   emailGet(toEmail, $.codeData[code].name + '[' + code + ']:今日下降中', '当前价：' + $.Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最低：' + min.min.toFixed(2) + ';下行：' + minSum.toFixed(2) + ';下压：' + $.minCurr[code].nub);
                   $.soaringMin[code] = 1;
                   $.maxCurr[code].nub = 0
-              } else if ($.soaringMin[code] == 1 && newest > (isMin > min.min + 0.03 ? isMin : min.min + 0.03)) {
+              } else if ($.soaringMin[code] == 1 && newest > (min.min + isMin)) {
                   $.deal[item.codeID] && $.deal[item.codeID].dow++
                 //   emailGet(toEmail, $.codeData[code].name + '[' + code + ']:回升中', '当前价：' + $.Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最低：' + min.min.toFixed(2) + ';下行：' + minSum.toFixed(2) + nubMon);
                   $.soaringMin[code] = 0;
-                  $.minCurr[code].nub = $.minCurr[code].nub + mathNumber($.minCurr[code].nub);
-                  $.minCurr[code].arr.push(max.max)
+                  $.minCurr[code].nub = $.minCurr[code].nub + mathNumber($.minCurr[code].arr.length);
+                  $.minCurr[code].arr.push(max.max);
               }
           }
           function mathNumber(val) {
-              if (val < 0.05) {
-                  return 0.05
-              } else if (val < 0.09) {
-                  return 0.04
-              } else if (val < 0.12) {
-                  return 0.03
-              } else if (val < 0.14) {
-                  return 0.02
+              if (val == 1) {
+                return $.openVal[code] * 0.005
+              } else if (val == 2) {
+                return $.openVal[code] * 0.003
+              } else if (val == 3) {
+                return $.openVal[code] * 0.001
               } else {
-                  return 0.01
+                return 0.01
               }
           }
       }

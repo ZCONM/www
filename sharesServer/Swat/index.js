@@ -26,7 +26,8 @@ let $ = {
     maxCurr: {},
     minCurr: {},
     MaxNumber: [],
-    deal: {}
+    deal: {},
+    openVal: {}
 }
 // 初始化
 $.schedule.scheduleJob('0 55 8 * * 1-5', function () {
@@ -46,6 +47,7 @@ $.schedule.scheduleJob('0 55 8 * * 1-5', function () {
     $.minCurr = {}; // 下压值
     $.MaxNumber = []; // 未使用
     $.deal = {}; // 当天买卖次数
+    $.openVal = {}; // 开盘价
 });
 function loading() {
     if ($.timeRQ == setTime()) return
@@ -60,8 +62,8 @@ function loading() {
             $.soaringMax[item.codeID] = 0;
             $.soaringMin[item.codeID] = 0;
             $.dayFlag[item.codeID] = 0;
-            $.maxValue[item.codeID] = (item.max - Number(item.mean)) * 0.1;
-            $.minValue[item.codeID] = (Number(item.mean) - item.min) * 0.1;
+            $.maxValue[item.codeID] = (item.max - Number(item.mean)) * 0.05;
+            $.minValue[item.codeID] = (Number(item.mean) - item.min) * 0.05;
             $.maxCurr[item.codeID] = { nub: 0, arr: [] };
             $.minCurr[item.codeID] = { nub: 0, arr: [] };
             // if (item.codeID == 'sz300263') debugger
@@ -76,9 +78,9 @@ function loading() {
                 }
             }
         }
-        $.codeIDarr1 = arr1
-        $.codeIDarr2 = arr2
-        $.codeIDarr3 = arr3
+        $.codeIDarr1 = arr1;
+        $.codeIDarr2 = arr2;
+        $.codeIDarr3 = arr3;
         gainCode();
     }).catch(function (err) {
         console.log(err);
@@ -117,22 +119,16 @@ function gainCode() {
 // 发送最新股票评分
 $.schedule.scheduleJob('5 45 14 * * 1-5', function () {
     console.log('发送最新股票评分');
-    $.https.get('http://127.0.0.1:9999/HamstrerServlet/api/grade?type=1')
-    // for (let i = 0; i < $.codeIDarr1.length; i++) {
-    //     let item = $.codeIDarr1[i];
-    // }
+    $.https.get('http://127.0.0.1:9999/HamstrerServlet/api/grade?type=1');
     $.codeIDarr1.length && longLine.endEmail($);
-    // for (let i = 0; i < $.codeIDarr2.length; i++) {
-    //     let item = $.codeIDarr2[i];
-    // }
     $.codeIDarr2.length && stup.endEmail($);
 });
 // 执行任务收集信息
-// setBOX($)
+// setBOX($);
 // minuteK($)
 $.schedule.scheduleJob('5 0 16 * * 1-5', function () {
     console.log('执行任务setBOX');
-    setBOX($)
-    minuteK($) // 最后5分钟K线
+    setBOX($);
+    minuteK($); // 最后5分钟K线
 });
 console.log('已开启统计计算服务')

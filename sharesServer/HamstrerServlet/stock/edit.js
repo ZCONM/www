@@ -13,7 +13,7 @@ MyList[stockName] = MyList[stockName] || mongoose.model(stockName, new Schema({
 	"max10": Number,
 	"K-Lin": []
 }), stockName);
-console.log('EEE:', data.setter)
+// console.log('EEE:', data.setter)
 var conditions =data.where, update = {'$set':data.setter}, options ={ multi:true};
 MyList[stockName].collection.update(conditions,update, options, function(err, docs){
     if(err) {

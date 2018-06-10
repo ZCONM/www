@@ -1,32 +1,25 @@
 module.exports = function ($) {
   let current = 0;
   let arrDataCode = [];
-  $.status = {}
-  stock_find()
-  function stock_find(currI) {
-      console.log('currI', currI)
-      let curr = currI || 0
-      let each = 200
-      $.https.get('http://127.0.0.1:9999/HamstrerServlet/stock/find').then(function (d) {
-          for (let i = curr; i < d.data.length && (i % each != 0 || i == curr); i++) {
-              let item = d.data[i];
-              lookData(i, d.data.length, item)
-          }
-          if (curr + each < d.data.length) {
-              setTimeout(() => {
-                  stock_find(curr + each)
-              }, 5000)
-          }
-      })
+  let data = null;
+  $.status = {};
+  async function stockFind (d) {
+      for (let i = 0; i < d.data.length; i++) {
+        let item = d.data[i];
+        if (item) {
+            await lookData(i, d.data.length, item);
+            console.log('item', i);
+        }
+      }
   }
+//   $.https.post('http://127.0.0.1:9999/HamstrerServlet/stock/find', {"codeID":"sh600240"}).then(function (d) {
+  $.https.get('http://127.0.0.1:9999/HamstrerServlet/stock/find').then(function (d) {
+    stockFind(d)
+  });
   // 收集当天信息
   function lookData(index, len, item) {
-      console.log('lookData', index, len)
-      if (!item) return
-      $.https.get('http://hq.sinajs.cn/list=' + item.codeID, {
-          'responseType': 'text/plain;charset=utf-8',
-          'header': 'text/plain;charset=utf-8'
-      }).then(res => {
+    async function getApi(res) {
+        console.log('lookData', index, len);      
         let data = res.data.split('=')[1].split('"').join('').split(';').join('').split(',');
         let [
         temp1, // 股票名称
@@ -112,16 +105,28 @@ module.exports = function ($) {
             'max10': max10,
             'K-Lin': k_link
         };
-        obj.max && $.https.post('http://127.0.0.1:9999/HamstrerServlet/stock/edit', {
-            where: { codeID: item.codeID },
-            setter: obj
-        }).then(function (res) {
-            current++
-            console.log('成功 ' + item.codeID + '-->', current)
-        }).catch(function (err) {
-            current++
-            console.log('失败 ', item.codeID + '-->', current);
-        })
+        console.log('edit ->', index);
+        if (obj.max) {
+            await editData(item.codeID, obj, index);
+        }
+      }
+
+      return $.https.get('http://hq.sinajs.cn/list=' + item.codeID, {
+          'responseType': 'text/plain;charset=utf-8',
+          'header': 'text/plain;charset=utf-8'
+      }).then(getApi).catch(err => {
+        !$.status[index + len] && lookData(index, len, item);
+        $.status[index + len] = true;
+      });
+  }
+  function editData (codeID, obj, index) {
+      return $.https.post('http://127.0.0.1:9999/HamstrerServlet/stock/edit', {
+          where: { codeID: codeID },
+          setter: obj
+      }).then(function (res) {
+          console.log('成功 ' + codeID + '-->', index);
+      }).catch(function (err) {
+          console.log('失败 ', codeID + '-->', index);
       })
   }
 }

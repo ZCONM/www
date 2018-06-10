@@ -25,9 +25,7 @@ function isEmptyObject(e) {
     return !0  
 }
 app.get('/HamstrerServlet/*', function(req, res){
-    // console.log('url:',req.url);
     let data = req.query;
-    // console.log('data:',data);
     let stockName = req.url.replaceAll("/HamstrerServlet/", "").split("/")[0];
     let sandbox = {  
         req: req,  
@@ -45,14 +43,11 @@ app.get('/HamstrerServlet/*', function(req, res){
     };
     let url = req.url.split('?')[0];
     fs.readFile('.' + url + '.js', function(err, fileData) {
-    	console.log(fileData);
         vm.runInNewContext(fileData, sandbox, 'myfile.vm');
     });
 });
 let jsonParser = bodyParser.json()
 app.post('/HamstrerServlet/*', jsonParser, function(req, res){
-    // console.log('url:',req.url);
-    // console.log('data:',req.body)
     let body = '', jsonStr = '';
     if (req.body) {
         //能正确解析 json 格式的post参数
