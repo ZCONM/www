@@ -33,24 +33,24 @@ module.exports = function ($) {
         volume // 量
         ] = item.codeID.substring(0,2) !== 'hk' ? [
         data[0],
-        data[1],
-        data[2],
-        data[3],
-        data[4],
-        data[5],
+        Number(data[1]),
+        Number(data[2]),
+        Number(data[3]),
+        Number(data[4]),
+        Number(data[5]),
         data[30],
         data[31],
-        data[8]
+        Number(data[8])
         ] : [
         data[1],
-        data[2],
-        data[3],
-        data[6],
-        data[4],
-        data[5],
+        Number(data[2]),
+        Number(data[3]),
+        Number(data[6]),
+        Number(data[4]),
+        Number(data[5]),
         data[17],
         data[18],
-        data[8]
+        Number(data[8])
         ]
         if (Number(temp4) == 0) {
             current++
@@ -68,6 +68,8 @@ module.exports = function ($) {
             'ks': Number(temp2),
             'js': Number(temp4),
             'volume': Number(volume),
+            'mean5': null,
+            'mean10': null,
             'deal': $.deal[item.codeID] || null,
             'timeRQ': temp7,
             'status': Number(temp4) - Number(temp2)
@@ -86,19 +88,28 @@ module.exports = function ($) {
                     min10.push(item['K-Lin'][k].min);
                     max10.push(item['K-Lin'][k].max);
                     !objCF[item['K-Lin'][k].timeRQ] && k_link.push(item['K-Lin'][k]);
-                    objCF[item['K-Lin'][k].timeRQ] = true
+                    objCF[item['K-Lin'][k].timeRQ] = true;
                 }
             }
         }
+        // 计算5，10均线
+        k_link.forEach((obj, index) => {
+            if (index + 5 < k_link.length) {
+                obj.mean5 = k_link.slice(index, index + 5).sum('js');
+            }
+            if (index + 10 < k_link.length) {
+                obj.mean10 = k_link.slice(index, index + 10).sum('js');
+            }
+        });
         mean10 = mean10.sum();
         min10 = min10.min().min;
         max10 = max10.max().max;
         let obj = {
-            'minData': $.Sday[code] && $.Sday[code].length > 0 ? maxJudgeMinus($.Sday[code]) : [Number(temp6), (Number(temp5) + Number(temp6)) / 2],
-            'maxData': $.Sday[code] && $.Sday[code].length > 0 ? maxJudgeAdd($.Sday[code]) : [Number(temp5), (Number(temp5) + Number(temp6)) / 2],
-            'max': Number(temp5),
-            'min': Number(temp6),
-            'mean': (Number(temp5) + Number(temp6)) / 2,
+            'minData': $.Sday[code] && $.Sday[code].length > 0 ? maxJudgeMinus($.Sday[code]) : [temp6, (temp5 + temp6) / 2],
+            'maxData': $.Sday[code] && $.Sday[code].length > 0 ? maxJudgeAdd($.Sday[code]) : [temp5, (temp5 + temp6) / 2],
+            'max': temp5,
+            'min': temp6,
+            'mean': (temp5 + temp6) / 2,
             'timeRQ': timeRQ,
             'mean10': mean10,
             'min10': min10,
@@ -157,7 +168,7 @@ function boll(k_link, o) {
     MD: MD,
     MB: MB
   } 
-  let norm = k_link.length > 0 ? (([].concat(JudgeMax(k_link), JudgeMinus(k_link))).sum() || 2) : 2
+  let norm = k_link.length ? (([].concat(JudgeMax(k_link), JudgeMinus(k_link))).sum() || 2) : 2
   UP = MB + (norm * MD);
   DN = MB - (norm * MD);
   let obj = {

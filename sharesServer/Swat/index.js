@@ -66,7 +66,6 @@ function loading() {
             $.minValue[item.codeID] = (Number(item.mean) - item.min) * 0.05;
             $.maxCurr[item.codeID] = { nub: 0, arr: [] };
             $.minCurr[item.codeID] = { nub: 0, arr: [] };
-            // if (item.codeID == 'sz300263') debugger
             $.codeData[item.codeID] = item;
             if (item.status > 0) {
                 $.deal[item.codeID] = { up: 0, dow: 0, status: true, info: null}
@@ -98,14 +97,14 @@ function gainCode() {
         for (let i = 0; i < $.codeIDarr1.length; i++) {
             let item = $.codeIDarr1[i];
             if (time.getHours() < 15) {
-                console.log("解析股票代码长：", item.codeID)
+                console.log("longLine解析股票代码：", item.codeID)
                 longLine(item.codeID, !!item.max, $);
             }
         }
         for (let i = 0; i < $.codeIDarr2.length; i++) {
             let item = $.codeIDarr2[i];
             if (time.getHours() < 15) {
-                console.log("解析股票代码短：", item.codeID)
+                console.log("stup解析股票代码：", item.codeID)
                 stup(item.codeID, !!item.max, $);
             }
         }

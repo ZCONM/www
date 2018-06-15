@@ -98,10 +98,10 @@ Array.prototype.min = function () {
   let config = {
     volume: 10, // 量比
     boll: 0.8, // 布林值反转趋势
-    BF: 2, // 反转趋势
+    BF: 0.5, // 反转趋势
     bollCurr: 5 // 布林线趋势
   };
-//   axios.post('http://127.0.0.1:9999/HamstrerServlet/stock/find', {"codeID":"sz002737"}).then(function(d) {
+//   axios.post('http://127.0.0.1:9999/HamstrerServlet/stock/find', {"codeID":"sh600243"}).then(function(d) {
   axios.post('http://127.0.0.1:9999/HamstrerServlet/stock/find').then(function(d) {
     if (d.data) {
         fileArr = d.data.filter(item => {
@@ -139,6 +139,7 @@ Array.prototype.min = function () {
     console.log('indexKS', index, len);
     let item = fileArr[index];    
     if (index == len) {
+        if (!MaxNumber.length) return;
         let code = MaxNumber[MaxNumber.length - 1][0].code;
         let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
         setTimeout(() => {
@@ -206,6 +207,8 @@ Array.prototype.min = function () {
         'ks': Number(temp2),
         'js': Number(temp4),
         'volume': Number(volume),
+        'mean5': null,
+        'mean10': null,
         'deal': null,
         'timeRQ': temp7,
         'status': Number(temp4) - Number(temp2)
@@ -221,6 +224,15 @@ Array.prototype.min = function () {
             }
         }
     }
+    // 计算5，10均线
+    k_link.forEach((obj, index) => {
+        if (index + 5 < k_link.length) {
+            obj.mean5 = k_link.slice(index, index + 5).sum('js');
+        }
+        if (index + 10 < k_link.length) {
+            obj.mean10 = k_link.slice(index, index + 10).sum('js');
+        }
+    });
     consoles.log('开始scoreNumber计算分数');
     scoreNumber(k_link, item.codeID);
     getHtml(index + 1, len);
@@ -233,13 +245,13 @@ Array.prototype.min = function () {
     if (k_link.length > 2) {
         consoles.log('k_link', k_link[0]);
         scoreFun(0, k_link.length, k_link);
-        consoles.log('scoreFun',code, score);
-        score.numner += BF(k_link); // boll趋势
-        consoles.log('BF',code, score);
+        consoles.log('scoreFun ------>',code, score);
+        score.numner += BF(k_link); // 趋势
+        consoles.log('BF  ------>',code, score);
         score.numner += bollCurr(k_link);
-        consoles.log('bollCurr',code, score);
+        consoles.log('bollCurr  ------>',code, score);
         score.numner += volumeFun(k_link);
-        consoles.log('volumeFun',code, score);
+        consoles.log('volumeFun  ------>',code, score);
         let name = parseInt(score.numner);
         if (name >= 0) {
             if (!MaxNumber[name]) MaxNumber[name] = [];
@@ -292,8 +304,8 @@ Array.prototype.min = function () {
   }
   
   // 计算布林值
-  function boll(k_link, o) {
-    k_link = [o].concat(k_link)
+  function boll(k, o) {
+    let k_link = [o].concat(k)
     let MA = 0, MD = 0, MB = 0, UP = 0, DN = 0, mean = 0, sum = 0, arr = [], i1 = 0, k1 = 0, k2 = 0;
     for (let i = 0; i < k_link.length && i < 20; i++) {
         MA += Number(k_link[i].js)
@@ -314,7 +326,7 @@ Array.prototype.min = function () {
     }
     MD = Math.sqrt(sum / k1);
     MB = mean / k2;
-    let norm = ([].concat(JudgeMax(k_link), JudgeMinus(k_link))).sum()
+    let norm = ([].concat(JudgeMax(k_link), JudgeMinus(k_link))).sum() || 2
     UP = MB + (norm * MD);
     DN = MB - (norm * MD);
     let obj = {
@@ -332,34 +344,34 @@ Array.prototype.min = function () {
     let nub = 0;
     let flag = 0;
     for (let i = 0;i < k_link.length && flag < 2;i++) {
-        let item = k_link[i]
-        if (item.boll) {
+        let item = k_link[i];
+        if (item.mean5 && item.mean10) {
             if (i < 2 && flag == 0) {
-                if (item.js > item.boll.DN && item.js < item.boll.DN * 1 / 4) {
-                    nub += config.BF;
+                if (item.mean5 > item.mean10) {
+                    nub += config.BF * 2;
                     flag++;
+                    consoles.log('BF for1 ---->', i, nub);
                 }
             } else if (i >= 2 && flag == 1) {
-                if (item.js < item.boll.DN) {
+                if (item.mean5 < item.mean10) {
                     nub += config.BF;
-                    flag++
-                }
-                if (item.js > item.boll.UP) {
-                    nub -= config.BF;
-                    flag++
+                    flag++;
+                    consoles.log('BF for2 ---->', i, nub);
                 }
             } else {
+                consoles.log('BF ---->', nub);
                 return nub
             }
         }
     }
+    consoles.log('BF ---->', nub);
     return nub
   }
   // 价格区间记分
   function bollCurr(k_link) {
-    let nub = k_link.length ? k_link[0].boll.UP / k_link[0].js * config.bollCurr : 0;
+    let nub = k_link.length ? (k_link[0].boll.UP / k_link[0].js * config.bollCurr) || 0 : 0;
     if (k_link[0] && k_link[1] && k_link[0].js > k_link[1].max) {
-        nub += k_link[0].js / k_link[1].max * config.bollCurr;
+        nub += (k_link[0].js / k_link[1].max * config.bollCurr) || 0;
     }
     return nub;
   }
@@ -368,7 +380,8 @@ Array.prototype.min = function () {
       // 量比加分
       let numner = 0;
       if (k_link[0].volume && k_link[0+1].volume && k_link[0+1].volume > k_link[0].volume && k_link[0].status > 0) {
-          numner += (k_link[0+1].volume / k_link[0].volume) * config.volume;
+          let vol = k_link[0+1].volume / k_link[0].volume;
+          numner += (vol > 3 ? 3 : vol) * config.volume;
           consoles.log('volumeFun >>> 量比1', numner);
           numner += k_link[0+1].status > 0 ? config.volume / 2 : 0;
           consoles.log('volumeFun >>> 量比2', numner);
@@ -414,6 +427,7 @@ Array.prototype.min = function () {
       arr = []
       arrs = []
     }
+    consoles.log('maxData:', maxData);
     return maxData
   }
   // boll计算低点
@@ -436,5 +450,6 @@ Array.prototype.min = function () {
       arr = []
       arrs = []
     }
+    consoles.log('minData:', minData);
     return minData
   }
