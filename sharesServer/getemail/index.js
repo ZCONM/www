@@ -10,7 +10,7 @@ var transporter = nodemailer.createTransport({
   });
   var mailOptions = {
     from: '826164058@qq.com', // 发送者
-    to: toEmail, // 接受者,可以同时发送多个,以逗号隔开
+    to: toEmail || '851726398@qq.com', // 接受者,可以同时发送多个,以逗号隔开
     subject: title, // 标题
     //text: text, // 文本
     html: '<h2>' + text + '</h2>' // html代码

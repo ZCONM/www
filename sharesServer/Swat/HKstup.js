@@ -109,7 +109,7 @@ module.exports = function (code, flag, $, itemIndex) {
           if (!$.deal[code].info && $.codeIDarr3[0].codeID == code) { // 空仓
             console.log(code + '空仓', list[0].M1.toFixed(2), list[0].M2.toFixed(2), list[0].M.toFixed(2), $.EPS, $.HKflag)
             if (((list[0].M1 < list[0].M2 && (list[0].M - list[0].M2) > 0) || (list[0].M > list[0].M1 && list[0].M1 > list[0].M2)) && !$.HKflag) {
-              emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:全仓', '当前价：' + list[0].M + nubMon);
+              emailGet(null, $.codeData[code].name + '[' + code + ']:全仓', '当前价：' + list[0].M + nubMon);
               let bottom = []
               for (let i = 0; i < list.length && (list[i].M1 < list[i].M2 || i < 5); i++) {
                 bottom.push(list[i].M)
@@ -126,13 +126,13 @@ module.exports = function (code, flag, $, itemIndex) {
             if (list[0].M - $.deal[code].info.bottom >= 0) {
               if ((list[0].M - $.deal[code].info.M) / $.deal[code].info.M > 0.005) {
                 if (list[0].M < list[0].M1 && list[1].M < list[1].M1) {
-                  emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:清仓', '当前价：' + list[0].M + nubMon);
+                  emailGet(null, $.codeData[code].name + '[' + code + ']:清仓', '当前价：' + list[0].M + nubMon);
                   $.deal[code].info = null
                   $.HKflag = false
                 }
               }
             } else if (list[0].M - $.deal[code].info.bottom < 0 && list[1].M - $.deal[code].info.bottom < 0) { // 破最低清仓
-              emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:清仓', '当前价：' + list[0].M + nubMon);
+              emailGet(null, $.codeData[code].name + '[' + code + ']:清仓', '当前价：' + list[0].M + nubMon);
               $.deal[code].info = null
               $.deal[code].dow++
               $.HKflag = false
@@ -209,7 +209,7 @@ module.exports.endEmail = function ($) {
         if ($.codeIDarr2[item].codeID) {
             let code = $.codeIDarr2[item].codeID;
             let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
-            emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:清仓', '当前价：' + $.Sday[code][$.Sday[code].length - 1].toFixed(2) + nubMon);
+            emailGet(null, $.codeData[code].name + '[' + code + ']:清仓', '当前价：' + $.Sday[code][$.Sday[code].length - 1].toFixed(2) + nubMon);
         }
     }
 }

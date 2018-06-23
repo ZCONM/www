@@ -147,9 +147,9 @@ Array.prototype.min = function () {
         }).catch((err) => {
             console.log('edit', err)
         })
-        emailGet('851726398@qq.com', '股票评分', MaxNumber.srotGrade())
+        emailGet(null, '股票评分', MaxNumber.srotGrade())
         console.log('发送全仓邮件');
-        emailGet('851726398@qq.com', '[' + code + ']:全仓', nubMon);
+        emailGet(null, '[' + code + ']:全仓', nubMon);
         return
     }
     let data = content[item.codeID];

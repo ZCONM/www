@@ -259,24 +259,24 @@ if(Sday[code].length > 0) {
       let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：'+ code.substring(2,8) +'</span>';
   if(newest > maxSum) {
     if(max.nub == lengths && soaringMax[code] == 0 && max.max > (maxCurr[code].arr[maxCurr[code].arr.length - 1] + maxCurr[code].nub)) {
-      emailGet('851726398@qq.com,423642318@qq.com',codeData[code].name + '[' + code + ']:今日飙升中', '当前价：' + Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2) + ';上行：' + maxSum.toFixed(2) + ';上压：' + maxCurr[code].nub);
+      emailGet(null,codeData[code].name + '[' + code + ']:今日飙升中', '当前价：' + Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2) + ';上行：' + maxSum.toFixed(2) + ';上压：' + maxCurr[code].nub);
       soaringMax[code] = 1;
               minCurr[code].nub = 0;
     } else if(soaringMax[code] == 1 && newest < (isMax < max.max - 0.03 ? isMax : max.max - 0.03)) {
               deal[item.codeID] && deal[item.codeID].up++
-      emailGet('851726398@qq.com,423642318@qq.com', codeData[code].name + '[' + code + ']:回降中', '当前价：' + Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2) + ';上行：' + maxSum.toFixed(2) + nubMon);
+      emailGet(null, codeData[code].name + '[' + code + ']:回降中', '当前价：' + Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2) + ';上行：' + maxSum.toFixed(2) + nubMon);
       soaringMax[code] = 0;
               maxCurr[code].nub = maxCurr[code].nub + mathNumber(maxCurr[code].nub);
               maxCurr[code].arr.push(max.max)
     }
   } else if(newest < minSum) {
     if(min.nub == lengths && soaringMin[code] == 0 && min.min < (minCurr[code].arr[minCurr[code].arr.length - 1] - minCurr[code].nub)) {
-      emailGet('851726398@qq.com,423642318@qq.com',codeData[code].name + '[' + code + ']:今日下降中', '当前价：' + Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最低：' + min.min.toFixed(2) + ';下行：' + minSum.toFixed(2) + ';下压：' + minCurr[code].nub);
+      emailGet(null,codeData[code].name + '[' + code + ']:今日下降中', '当前价：' + Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最低：' + min.min.toFixed(2) + ';下行：' + minSum.toFixed(2) + ';下压：' + minCurr[code].nub);
               soaringMin[code] = 1;
               maxCurr[code].nub = 0
     } else if(soaringMin[code] == 1 && newest > (isMin > min.min + 0.03 ? isMin : min.min + 0.03)) {
               deal[item.codeID] && deal[item.codeID].dow++
-      emailGet('851726398@qq.com,423642318@qq.com',codeData[code].name + '[' + code + ']:回升中', '当前价：' + Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最低：' + min.min.toFixed(2) + ';下行：' + minSum.toFixed(2)  + nubMon);
+      emailGet(null,codeData[code].name + '[' + code + ']:回升中', '当前价：' + Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最低：' + min.min.toFixed(2) + ';下行：' + minSum.toFixed(2)  + nubMon);
               soaringMin[code] = 0;
               minCurr[code].nub = minCurr[code].nub + mathNumber(minCurr[code].nub);
               minCurr[code].arr.push(max.max)
@@ -307,12 +307,12 @@ for(let item in codeIDarr) {
       let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：'+ code.substring(2,8) +'</span>';
       if (soaringMax[code] == 1) {
           deal[code] && deal[code].up++
-          emailGet('851726398@qq.com,423642318@qq.com',codeData[code].name + '[' + code + ']:回降中', '当前价：' + Sday[code][Sday[code].length - 1].toFixed(2) + nubMon);
+          emailGet(null,codeData[code].name + '[' + code + ']:回降中', '当前价：' + Sday[code][Sday[code].length - 1].toFixed(2) + nubMon);
           soaringMax[code] = 0;
   }
   if (soaringMin[code] == 1) {
           deal[code] && deal[code].dow++
-          emailGet('851726398@qq.com,423642318@qq.com',codeData[code].name + '[' + code + ']:回升中', '当前价：' + Sday[code][Sday[code].length - 1].toFixed(2) + nubMon);
+          emailGet(null,codeData[code].name + '[' + code + ']:回升中', '当前价：' + Sday[code][Sday[code].length - 1].toFixed(2) + nubMon);
           soaringMin[code] = 0;
       }
 }

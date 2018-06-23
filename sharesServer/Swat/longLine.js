@@ -68,7 +68,7 @@ module.exports = function (code, flag, $) {
             if (!$.flagCode[code]) {
                 $.flagCode[code] = true;
                 let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span><p>检测行情跌势'+ parseInt((temp4 - temp3) / temp3 * 10000) / 100 + '%' +'%</p>';
-                emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:清仓', nubMon);
+                emailGet(null, $.codeData[code].name + '[' + code + ']:清仓', nubMon);
             }
             return
         }
@@ -91,7 +91,7 @@ module.exports = function (code, flag, $) {
           $.maxCurr[code].arr[0] || ($.maxCurr[code].arr[0] = maxSum);
           $.minCurr[code].arr[0] || ($.minCurr[code].arr[0] = minSum);
           let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
-          let toEmail = '851726398@qq.com'
+          let toEmail = null;
           if (newest > maxSum) {
               if (max.nub == lengths && $.soaringMax[code] == 0 && max.max > ($.maxCurr[code].arr[$.maxCurr[code].arr.length - 1] + $.maxCurr[code].nub)) {
                   emailGet(toEmail, $.codeData[code].name + '[' + code + ']:今日飙升中', '当前价：' + $.Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2) + ';上行：' + maxSum.toFixed(2) + ';上压：' + $.maxCurr[code].nub);
@@ -155,7 +155,7 @@ module.exports.endEmail = function ($) {
         if ($.codeIDarr1[item].codeID) {
             let code = $.codeIDarr1[item].codeID;
             let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
-            let toEmail = '851726398@qq.com';
+            let toEmail = null;
             // if ($.soaringMax[code] == 1) {
             //     $.deal[code] && $.deal[code].up++
             //     emailGet(toEmail, $.codeData[code].name + '[' + code + ']:回降中', '当前价：' + $.Sday[code][$.Sday[code].length - 1].toFixed(2) + nubMon);
@@ -166,7 +166,7 @@ module.exports.endEmail = function ($) {
             //     emailGet(toEmail, $.codeData[code].name + '[' + code + ']:回升中', '当前价：' + $.Sday[code][$.Sday[code].length - 1].toFixed(2) + nubMon);
             //     $.soaringMin[code] = 0;
             // }
-            emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:清仓', nubMon);
+            emailGet(null, $.codeData[code].name + '[' + code + ']:清仓', nubMon);
             $.https.post('http://localhost:8089/api/HamstrerServlet/stock/edit',{"where":{"codeID":code},"setter":{"status":0}});
         }
     }
