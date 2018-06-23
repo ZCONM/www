@@ -105,7 +105,7 @@ Array.prototype.min = function () {
   axios.post('http://127.0.0.1:9999/HamstrerServlet/stock/find').then(function(d) {
     if (d.data) {
         fileArr = d.data.filter(item => {
-            return (item.codeID[2] == 6 || item.codeID[2] == 3 || item.codeID[2] == 0) && item.codeID[0] == 's';
+            return (item.codeID[2] == 6 || item.codeID[2] == 3 || item.codeID[2] == 0) && item.codeID[0] == 's' && item.name.indexOf('退市') == -1;
         })
     }
     init(0, fileArr.length);
@@ -147,7 +147,7 @@ Array.prototype.min = function () {
         }).catch((err) => {
             console.log('edit', err)
         })
-        emailGet('851726398@qq.com,423642318@qq.com', '股票评分', MaxNumber.srotGrade())
+        emailGet('851726398@qq.com', '股票评分', MaxNumber.srotGrade())
         console.log('发送全仓邮件');
         emailGet('851726398@qq.com', '[' + code + ']:全仓', nubMon);
         return
