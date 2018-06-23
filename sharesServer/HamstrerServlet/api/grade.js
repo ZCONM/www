@@ -89,23 +89,23 @@ Array.prototype.min = function () {
     }
   }
   // -------------------------------------------------------------------------------------------
-  let test = false; // 是否展示测试console
+  let test = true; // 是否展示测试console
   let fileArr = [];
   let content = {};
   let serverUrl = '';
   let curr = 0;
   let MaxNumber = [];
   let config = {
-    volume: 3, // 量比
+    volume: 5, // 量比
     // boll: 0.8, // 布林值反转趋势
     BF: 1, // 反转趋势
     bollCurr: 5 // 布林线趋势
   };
-//   axios.post('http://127.0.0.1:9999/HamstrerServlet/stock/find', {"codeID":"sh600606"}).then(function(d) {
-  axios.post('http://127.0.0.1:9999/HamstrerServlet/stock/find').then(function(d) {
+  axios.post('http://127.0.0.1:9999/HamstrerServlet/stock/find', {"codeID":"sz300158"}).then(function(d) {
+//   axios.post('http://127.0.0.1:9999/HamstrerServlet/stock/find').then(function(d) {
     if (d.data) {
         fileArr = d.data.filter(item => {
-            return (item.codeID[2] == 6 || item.codeID[2] == 3 || item.codeID[2] == 0) && item.codeID[0] == 's' && item.name.indexOf('退市') == -1;
+            return (item.codeID[2] == 6 || item.codeID[2] == 3 || item.codeID[2] == 0) && item.codeID[0] == 's';
         })
     }
     init(0, fileArr.length);
@@ -123,10 +123,9 @@ Array.prototype.min = function () {
   }
   function api(codeID) {
     return axios.get('http://hq.sinajs.cn/list=' + codeID, {
-      'responseType': 'text/plain;charset=utf-8',
-      'header': 'text/plain;charset=utf-8'
+       responseType:'arraybuffer'
     }).then(function (res) {
-      let str = res.data;
+      let str = iconv.decode(res.data, 'gbk');
       strArr = str.split('var hq_str_');
       strArr.splice(0,1);
       strArr.forEach(item => {
@@ -190,6 +189,11 @@ Array.prototype.min = function () {
         data[18],
         data[8]
     ]
+    if (temp1.indexOf('退市') > -1 || temp1.indexOf('ST') > -1) {
+        consoles.log('劣质股！');
+        getHtml(index + 1, len);
+        return;
+    }
     if (Number(temp4) == 0 || (Number(temp4) - Number(temp3)) / Number(temp3) > 0.05) {
         consoles.log('max 5%');
         getHtml(index + 1, len);

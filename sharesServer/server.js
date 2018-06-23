@@ -9,6 +9,7 @@ let bodyParser = require('body-parser');
 let mongoose = require('./set-server.js');
 let axios = require('axios');
 let email = require('./getemail');
+let iconv = require('iconv-lite');
 let Schema = mongoose.Schema;
 let app = express();
 let MyList={};
@@ -39,6 +40,7 @@ app.get('/HamstrerServlet/*', function(req, res){
         axios: axios,
         email: email,
         console: console,
+        iconv: iconv,
         setTimeout: setTimeout
     };
     let url = req.url.split('?')[0];
@@ -79,6 +81,7 @@ app.post('/HamstrerServlet/*', jsonParser, function(req, res){
         axios: axios,
         email: email,
         console: console,
+        iconv: iconv,
         setTimeout: setTimeout
     };
     fs.readFile('.' + req.url + '.js', function(err, fileData) {

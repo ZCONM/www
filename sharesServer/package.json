@@ -8,6 +8,7 @@
     "axios": "^0.18.0",
     "express": "^4.16.3",
     "fs": "^0.0.1-security",
+    "iconv-lite": "^0.4.23",
     "journey": "^0.4.0-pre-3",
     "lodash": "^4.17.4",
     "mongodb": "^2.2.26",
