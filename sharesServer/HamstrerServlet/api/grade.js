@@ -142,7 +142,7 @@ Array.prototype.min = function () {
         if (!MaxNumber.length) return;
         let code = MaxNumber[MaxNumber.length - 1][0].code;
         let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
-        axios.post('http://localhost:8089/api/HamstrerServlet/stock/edit',{"where":{"codeID":code},"setter":{"status":1}}).then(res=>{
+        axios.post('http://127.0.0.1:9999/HamstrerServlet/stock/edit',{"where":{"codeID":code},"setter":{"status":1}}).then(res=>{
             console.log('修改状态成功')
         }).catch((err) => {
             console.log('edit', err)
