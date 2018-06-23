@@ -96,12 +96,12 @@ Array.prototype.min = function () {
   let curr = 0;
   let MaxNumber = [];
   let config = {
-    volume: 10, // 量比
-    boll: 0.8, // 布林值反转趋势
-    BF: 0.5, // 反转趋势
+    volume: 3, // 量比
+    // boll: 0.8, // 布林值反转趋势
+    BF: 1, // 反转趋势
     bollCurr: 5 // 布林线趋势
   };
-//   axios.post('http://127.0.0.1:9999/HamstrerServlet/stock/find', {"codeID":"sh600243"}).then(function(d) {
+//   axios.post('http://127.0.0.1:9999/HamstrerServlet/stock/find', {"codeID":"sh600606"}).then(function(d) {
   axios.post('http://127.0.0.1:9999/HamstrerServlet/stock/find').then(function(d) {
     if (d.data) {
         fileArr = d.data.filter(item => {
@@ -142,13 +142,11 @@ Array.prototype.min = function () {
         if (!MaxNumber.length) return;
         let code = MaxNumber[MaxNumber.length - 1][0].code;
         let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span>';
-        setTimeout(() => {
-            axios.post('http://localhost:8089/api/HamstrerServlet/stock/edit',{"where":{"codeID":code},"setter":{"status":1}}).then(res=>{
-              console.log('修改状态成功')
-            }).catch((err) => {
-              console.log('edit', err)
-            })
-        }, 1000 * 60 * (58 - (new Date()).getMinutes()))
+        axios.post('http://localhost:8089/api/HamstrerServlet/stock/edit',{"where":{"codeID":code},"setter":{"status":1}}).then(res=>{
+            console.log('修改状态成功')
+        }).catch((err) => {
+            console.log('edit', err)
+        })
         emailGet('851726398@qq.com,423642318@qq.com', '股票评分', MaxNumber.srotGrade())
         console.log('发送全仓邮件');
         emailGet('851726398@qq.com', '[' + code + ']:全仓', nubMon);
@@ -244,14 +242,14 @@ Array.prototype.min = function () {
     // k_link.splice(0,1); // 测试代码去掉 n 数据
     if (k_link.length > 2) {
         consoles.log('k_link', k_link[0]);
-        scoreFun(0, k_link.length, k_link);
-        consoles.log('scoreFun ------>',code, score);
-        score.numner += BF(k_link); // 趋势
-        consoles.log('BF  ------>',code, score);
+        // scoreFun(0, k_link.length, k_link);
+        // consoles.log('scoreFun ------>',code, score);
         score.numner += bollCurr(k_link);
         consoles.log('bollCurr  ------>',code, score);
         score.numner += volumeFun(k_link);
         consoles.log('volumeFun  ------>',code, score);
+        score.numner += BF(k_link); // 趋势
+        consoles.log('BF  ------>',code, score);
         let name = parseInt(score.numner);
         if (name >= 0) {
             if (!MaxNumber[name]) MaxNumber[name] = [];
@@ -343,24 +341,41 @@ Array.prototype.min = function () {
   function BF(k_link) {
     let nub = 0;
     let flag = 0;
+    let flag1 = 0;
+    let arr = [];
     for (let i = 0;i < k_link.length && flag < 2;i++) {
         let item = k_link[i];
+        arr.push(item.js);
         if (item.mean5 && item.mean10) {
             if (i < 2 && flag == 0) {
                 if (item.mean5 > item.mean10) {
-                    nub += config.BF * 2;
+                    if (i == 0 && item.js > item.mean5 && item.ks < item.mean10) {
+                        nub += config.BF * 3;
+                        if (item.mean10 > item.mean20 && item.ks < item.mean20) {
+                            nub += config.BF * 3;
+                        }
+                    }
+                    nub += config.BF * 5;
                     flag++;
                     consoles.log('BF for1 ---->', i, nub);
                 }
-            } else if (i >= 2 && flag == 1) {
+            } else if (i >= 1 && flag == 1) {
                 if (item.mean5 < item.mean10) {
                     nub += config.BF;
                     flag++;
                     consoles.log('BF for2 ---->', i, nub);
                 }
-            } else {
+            } else if (flag == 2) {
+                nub += ((item.js - arr.min().min) / 2 + arr.min().min) / k_link[0].js * config.BF * 2
+                flag++;
                 consoles.log('BF ---->', nub);
-                return nub
+            }
+        }
+        if (i > 1 && flag1 == 0) {
+            if (item.status > 0) {
+                nub--;
+            } else {
+                flag1++;
             }
         }
     }
@@ -369,6 +384,8 @@ Array.prototype.min = function () {
   }
   // 价格区间记分
   function bollCurr(k_link) {
+    consoles.log('bollCurr ---->', k_link[0].boll);
+    if (k_link[0].boll.MB < k_link[0].js) return 0;
     let nub = k_link.length ? (k_link[0].boll.UP / k_link[0].js * config.bollCurr) || 0 : 0;
     if (k_link[0] && k_link[1] && k_link[0].js > k_link[1].max) {
         nub += (k_link[0].js / k_link[1].max * config.bollCurr) || 0;

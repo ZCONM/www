@@ -1,11 +1,11 @@
-﻿let init = require('./init')
-let setTime = init.setTime
-let longLine = require('./longLine')
-let stup = require('./stup')
-let HKstup = require('./HKstup')
-let setBOX = require('./setBOX')
-let minuteK = require('./minuteK')
-init.init()
+﻿let init = require('./init');
+let setTime = init.setTime;
+let longLine = require('./longLine');
+let stup = require('./stup');
+let HKstup = require('./HKstup');
+let setBOX = require('./setBOX');
+let minuteK = require('./minuteK');
+init.init();
 // ------------------------------------
 let $ = {
     https: require('axios'),
@@ -27,7 +27,8 @@ let $ = {
     minCurr: {},
     MaxNumber: [],
     deal: {},
-    openVal: {}
+    openVal: {},
+    flagCode: {}
 }
 // 初始化
 $.schedule.scheduleJob('0 55 8 * * 1-5', function () {
@@ -48,6 +49,7 @@ $.schedule.scheduleJob('0 55 8 * * 1-5', function () {
     $.MaxNumber = []; // 未使用
     $.deal = {}; // 当天买卖次数
     $.openVal = {}; // 开盘价
+    $.flagCode = {}; // 清仓标识
 });
 function loading() {
     if ($.timeRQ == setTime()) return
@@ -92,18 +94,17 @@ function gainCode() {
     let time = new Date()
     if ((time.getHours() > 9 || time.getMinutes() > 30) && time.getSeconds() % 5 == 0) {
         console.log('time ->', time.getMinutes(), time.getSeconds())
-        time.getMinutes() % 5 == 0 && time.getSeconds() < 5 && minuteK($)
-        // minuteK($)
-        for (let i = 0; i < $.codeIDarr1.length; i++) {
-            let item = $.codeIDarr1[i];
-            if (time.getHours() < 15) {
+        time.getMinutes() % 5 == 0 && time.getSeconds() < 5 && minuteK($);
+        if (time.getHours() < 15) {
+            for (let i = 0; i < $.codeIDarr1.length; i++) {
+                let item = $.codeIDarr1[i];
                 console.log("longLine解析股票代码：", item.codeID)
                 longLine(item.codeID, !!item.max, $);
             }
         }
-        for (let i = 0; i < $.codeIDarr2.length; i++) {
-            let item = $.codeIDarr2[i];
-            if (time.getHours() < 15) {
+        if (time.getHours() < 15) {
+            for (let i = 0; i < $.codeIDarr2.length; i++) {
+                let item = $.codeIDarr2[i];
                 console.log("stup解析股票代码：", item.codeID)
                 stup(item.codeID, !!item.max, $);
             }
@@ -116,7 +117,7 @@ function gainCode() {
     }
 }
 // 发送最新股票评分
-$.schedule.scheduleJob('5 45 14 * * 1-5', function () {
+$.schedule.scheduleJob('5 53 14 * * 1-5', function () {
     console.log('发送最新股票评分');
     $.https.get('http://127.0.0.1:9999/HamstrerServlet/api/grade?type=1');
     $.codeIDarr1.length && longLine.endEmail($);

@@ -1,5 +1,4 @@
 let email = require('../getemail');
-let flagCode = {};
 module.exports = function (code, flag, $) {
   $.https.get('http://hq.sinajs.cn/list=' + (code.indexOf('hk') === -1 ? code : 'rt_' + code), {
         'responseType': 'text/plain;charset=utf-8',
@@ -64,16 +63,15 @@ module.exports = function (code, flag, $) {
         }
         let stop = ((temp5 - temp3) / temp3) || 0;
         console.log(code + '检测行情', parseInt((temp4 - temp3) / temp3 * 10000) / 100 + '%', stop);
-        console.log(code + 'if',(temp4 - temp3) / temp3, -0.03 + stop);
-        if ((temp4 - temp3) / temp3 < -0.03 + stop) { // !statusFlag($.codeData[code]['K-Lin'])
-            if (!flagCode[code]) {
-                let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span><p>检测行情跌势超3%</p>';
+        console.log(code + 'if',(temp4 - temp3) / temp3, -0.025 + (stop < 2 && stop > 1 ? 1 : stop));
+        if ((temp4 - temp3) / temp3 < -0.025 + (stop < 2 && stop > 1 ? 1 : stop)) {
+            if (!$.flagCode[code]) {
+                $.flagCode[code] = true;
+                let nubMon = '<br /><span style="color: #0D5F97;font-size: 28px;">代码：' + code.substring(2, 8) + '</span><p>检测行情跌势'+ parseInt((temp4 - temp3) / temp3 * 10000) / 100 + '%' +'%</p>';
                 emailGet('851726398@qq.com', $.codeData[code].name + '[' + code + ']:清仓', nubMon);
-                flagCode[code] = true
             }
             return
         }
-        flagCode[code] = false
         temp4 > 0 && flag && calculatingData(code, temp1);
     });
     function calculatingData(code, name) {
@@ -101,7 +99,7 @@ module.exports = function (code, flag, $) {
                   $.minCurr[code].nub = 0;
               } else if ($.soaringMax[code] == 1 && newest < (max.max - isMax)) {
                   $.deal[item.codeID] && $.deal[item.codeID].up++
-                  emailGet(toEmail, $.codeData[code].name + '[' + code + ']:' + ($.maxCurr[code].arr.length < 3 ? '回降中' : '清仓'), '当前价：' + $.Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2) + ';上行：' + maxSum.toFixed(2) + nubMon);
+                  emailGet(toEmail, $.codeData[code].name + '[' + code + ']:' + ($.maxCurr[code].arr.length >= 3 ||  $.openVal[code] * 1.05 < currDay? '清仓' : '回降中'), '当前价：' + $.Sday[code][lengths].toFixed(2) + '当日平均值：' + mean.toFixed(2) + ';当日最高：' + max.max.toFixed(2) + ';上行：' + maxSum.toFixed(2) + nubMon);
                   $.soaringMax[code] = 0;
                   $.maxCurr[code].nub = $.maxCurr[code].nub + mathNumber($.maxCurr[code].arr.length);
                   $.maxCurr[code].arr.push(max.max);

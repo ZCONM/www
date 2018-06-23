@@ -3,7 +3,7 @@ module.exports = function ($) {
   let arrDataCode = [];
   let data = null;
   $.status = {};
-  async function stockFind (d) {
+  async function stockFind(d) {
       for (let i = 0; i < d.data.length; i++) {
         let item = d.data[i];
         if (item) {
@@ -70,6 +70,7 @@ module.exports = function ($) {
             'volume': Number(volume),
             'mean5': null,
             'mean10': null,
+            'mean20': null,
             'deal': $.deal[item.codeID] || null,
             'timeRQ': temp7,
             'status': Number(temp4) - Number(temp2)
@@ -82,7 +83,7 @@ module.exports = function ($) {
         if (item['K-Lin']) {
             let objCF = {}
             objCF[o.timeRQ] = true
-            for (let k = 0; k < item['K-Lin'].length && k < 20; k++) {
+            for (let k = 0; k < item['K-Lin'].length && k < 23; k++) {
                 if (item['K-Lin'][k].js) {
                     mean10.push(item['K-Lin'][k].mean);
                     min10.push(item['K-Lin'][k].min);
@@ -99,6 +100,9 @@ module.exports = function ($) {
             }
             if (index + 10 < k_link.length) {
                 obj.mean10 = k_link.slice(index, index + 10).sum('js');
+            }
+            if (index + 20 < k_link.length) {
+                obj.mean20 = k_link.slice(index, index + 20).sum('js');
             }
         });
         mean10 = mean10.sum();
