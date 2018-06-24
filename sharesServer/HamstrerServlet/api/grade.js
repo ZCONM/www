@@ -89,7 +89,7 @@ Array.prototype.min = function () {
     }
   }
   // -------------------------------------------------------------------------------------------
-  let test = true; // 是否展示测试console
+  let test = false; // 是否展示测试console
   let fileArr = [];
   let content = {};
   let serverUrl = '';
@@ -101,8 +101,7 @@ Array.prototype.min = function () {
     BF: 1, // 反转趋势
     bollCurr: 5 // 布林线趋势
   };
-  axios.post('http://127.0.0.1:9999/HamstrerServlet/stock/find', {"codeID":"sz300158"}).then(function(d) {
-//   axios.post('http://127.0.0.1:9999/HamstrerServlet/stock/find').then(function(d) {
+  axios.post('http://127.0.0.1:9999/HamstrerServlet/stock/find', test ? {"codeID":"sz300158"} : {}).then(function(d) {
     if (d.data) {
         fileArr = d.data.filter(item => {
             return (item.codeID[2] == 6 || item.codeID[2] == 3 || item.codeID[2] == 0) && item.codeID[0] == 's';
@@ -345,9 +344,9 @@ Array.prototype.min = function () {
   function BF(k_link) {
     let nub = 0;
     let flag = 0;
-    let flag1 = 0;
     let arr = [];
-    for (let i = 0;i < k_link.length && flag < 2;i++) {
+    function forEach (i = 0) {
+        if (flag == 3) return;
         let item = k_link[i];
         arr.push(item.js);
         if (item.mean5 && item.mean10) {
@@ -362,6 +361,8 @@ Array.prototype.min = function () {
                     nub += config.BF * 5;
                     flag++;
                     consoles.log('BF for1 ---->', i, nub);
+                } else {
+                    return
                 }
             } else if (i >= 1 && flag == 1) {
                 if (item.mean5 < item.mean10) {
@@ -375,13 +376,7 @@ Array.prototype.min = function () {
                 consoles.log('BF ---->', nub);
             }
         }
-        if (i > 1 && flag1 == 0) {
-            if (item.status > 0) {
-                nub--;
-            } else {
-                flag1++;
-            }
-        }
+        forEach (i + 1)
     }
     consoles.log('BF ---->', nub);
     return nub
